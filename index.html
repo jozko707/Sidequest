@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Horolezec</title>
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><meta name="theme-color" content="#0b0f33"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Horolezec"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 <style>
 :root{--bg:#6ec6ff;--ink:#14123a;--card:#fff8d6;--hi:#ff4fa3;--gold:#ffd400;--ok:#1f9d55;--bad:#d62839;
@@ -81,7 +82,7 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 </div>
 <div id="v-reb" hidden><div class="box"><h2>Rebríček</h2><div id="board"></div></div></div>
 <div id="v-odz" hidden><div class="box"><h2>Odznaky <span id="bcnt"></span></h2><div id="bdg" class="bgrid"></div></div></div>
-<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
+<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="a2h" class="p">Pridať na plochu</button><p id="a2t" hidden>iPhone: ťukni na tlačidlo zdieľať (štvorec so šípkou) a potom na „Pridať na plochu“. Android: ťukni na tri bodky a potom na „Pridať na plochu“. Po pridaní sa môže stať, že sa musíš znova pripojiť kódom skupiny.</p><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
 </div>
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
@@ -250,6 +251,8 @@ $("csn").onclick=async()=>{const v=$("cv");if(!v.videoWidth)return;const cm=$("c
 const k=Math.max(W/v.videoWidth,H/v.videoHeight),dw=v.videoWidth*k,dh=v.videoHeight*k;x.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh);
 const im=$("cs"),sw=ss*W,sh=sw*im.naturalHeight/im.naturalWidth;x.drawImage(im,sx*W-sw/2,sy*H-sh/2,sw,sh);
 stBlob=await new Promise(q=>c.toBlob(q,"image/png"));stopStream();$("cam").style.display="none";$("shi").src=URL.createObjectURL(stBlob);$("shm").textContent="Hotovo! Ulož alebo zdieľaj fotku.";$("shp").style.display="flex"};
+let dip=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dip=e});
+$("a2h").onclick=async()=>{if(dip){dip.prompt();dip=null}else $("a2t").hidden=!$("a2t").hidden};
 $("hero").innerHTML=spr(HERO,4);$("lhero").innerHTML=spr(HERO,8);
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));["mis","reb","odz","prof"].forEach(v=>{$("v-"+v).hidden=v!==b.dataset.v});scrollTo(0,0)});
 $("snap").onclick=()=>{location.href="snapchat://"};
