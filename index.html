@@ -16,7 +16,7 @@ body{background:var(--bg);color:var(--ink);font:11px/1.8 "Press Start 2P",ui-mon
 main{max-width:460px;margin:0 auto;padding:12px}
 h1{font-size:15px;margin:6px 0;line-height:1.4}h2{font-size:11px;margin:0 0 8px}
 .box{background:var(--card);border:4px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:12px;margin:14px 0}
-input,button{font:inherit;color:var(--ink);background:var(--bg);border:3px solid var(--ink);padding:10px;width:100%;box-sizing:border-box;margin:4px 0}
+input,button,select{font:inherit;color:var(--ink);background:var(--bg);border:3px solid var(--ink);padding:10px;width:100%;box-sizing:border-box;margin:4px 0}
 button{background:var(--gold);color:#14123a;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
 button.p{background:var(--hi);color:#fff}button.g{background:#5fd38d}button.r{background:#ff7a7a}
 button:active{transform:translate(2px,2px)}
@@ -52,6 +52,11 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 #cs{position:absolute;transform:translate(-50%,-50%);touch-action:none;cursor:grab;height:auto;filter:drop-shadow(0 0 8px #0008)}
 #cbar{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#000a;display:flex;flex-direction:column;gap:4px}
 #cbar .r2{display:flex;gap:6px}#cbar button{margin:0}#cm{color:#fff;font-size:9px}
+input,button,select{font:inherit}
+.row2{border-bottom:2px dashed var(--ink);padding:6px 0;font-size:9px;line-height:1.7}.row2 button{padding:6px 8px;margin:4px 4px 0 0;width:auto;font-size:8px}
+.jmp{animation:jmp .9s ease-out!important}.fll{animation:fll 1.1s ease-in!important}
+@keyframes jmp{40%{transform:translateX(-50%) translateY(-90px)}100%{transform:translateX(-50%)}}@keyframes fll{to{transform:translateX(-50%) translateY(240px) rotate(220deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.jmp,.fll{animation:none!important}}
 #hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob 1s steps(2) infinite}
 #path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
@@ -81,7 +86,7 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <div id="above"></div>
 <div class="box"><h2>Misia</h2><div id="quest"></div><div id="acts"></div></div><button id="shr" class="p">Zdieľať na Instagram story</button>
 </div>
-<div id="v-reb" hidden><div class="box"><h2>Rebríček</h2><div id="board"></div></div></div>
+<div id="v-reb" hidden><div class="box"><h2>Na potvrdenie</h2><div id="conf">Nič na potvrdenie.</div></div><div class="box"><h2>Rebríček</h2><div id="board"></div></div><div class="box"><h2>Misia pre kamoša</h2><select id="gto"></select><input id="gtx" maxlength="120" placeholder="Napíš misiu (nič nebezpečné)"><button id="gsd" class="p">Poslať na ďalšiu misiu</button><div id="gl"></div></div></div>
 <div id="v-odz" hidden><div class="box"><h2>Odznaky <span id="bcnt"></span></h2><div id="bdg" class="bgrid"></div></div></div>
 <div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="out">Odhlásiť sa</button><button id="a2h" class="p">Pridať na plochu</button><p id="a2t" hidden>iPhone: ťukni na tlačidlo zdieľať (štvorec so šípkou) a potom na „Pridať na plochu“. Android: ťukni na tri bodky a potom na „Pridať na plochu“. Po pridaní sa môže stať, že sa musíš znova pripojiť kódom skupiny.</p><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
 </div>
@@ -95,7 +100,7 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {initializeFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {initializeFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,arrayUnion,addDoc,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyC-WkbHfU7VNrSdv_d9juWMgbQ8CprJX04",authDomain:"sidequest-f6fe8.firebaseapp.com",projectId:"sidequest-f6fe8",storageBucket:"sidequest-f6fe8.firebasestorage.app",messagingSenderId:"205425497277",appId:"1:205425497277:web:19e93981e5f846414f93d4"};
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=initializeFirestore(fb,{experimentalAutoDetectLongPolling:true});
 const $=id=>document.getElementById(id),D=864e5,V={full:50,half:25,fail:-25};
@@ -104,13 +109,17 @@ const spr=(g,sc,cl="")=>{let q="";g.forEach((row,y)=>[...row].forEach((ch,x)=>{i
 const HERO=[".....kkkkkk.....", "....krrrrrrk....", "...krrrwwrrrk...", "...krrrrrrrrk...", "...kkkkkkkkkk...", "....ssssssss....", "....cccssccc....", "....ssssssss....", "....snnnnnns....", "...yyyyyyyyyy...", "..nnOooooooOnnl.", "..OooogkkgoooOg.", "..OooookkooooOg.", "..OkkkkkkkkkkOg.", "..sobbbbbbbbosg.", "..sbbbbbbbbbbsg.", "....bbbbbbbb..g.", "....bbbbbbbb..g.", "....bbb..bbb..g.", "....bbb..bbb..g.", "...kkkk..kkkk...", "...kkkk..kkkk...", "...gkgk..gkgk..."];
 const SP={cl:spr(["....www.......","..wwwwwww.ww..",".wwwwwwwwwwww.","wwwwwwwwwwwwww",".gggggggggggg."],3),bd:spr(["m.......m",".mm...mm.","..mmrmm..","....y...."],3,"bd"),st:spr([".y.","yyy",".y."],3),wm:spr([".rrr.rrr.","rkrrrrrrr"],3),pb:spr([".nn.","nnnn","nnnn"],3),gm:spr(["..ccc..",".cwccc.","ccwcccc","cccccbc",".ccccb.","..cbc.."],3),fr:spr(["..o..",".oyo.","ooyoo","ooooo"],3)};
 const POOL=["Vypi 0,5 l Sprite a zajedz to banánom.","Zjedz celý burger do 60 sekúnd.","Zahraj scénu z romantického filmu, kde vyznávaš lásku.","Choď do lesa a hraj sa na vlka: zavýjaj a loviť.","Rozkúr oheň len drevom, na povolenom mieste a s vodou po ruke.","Oslov cudzieho človeka a pochváľ ho tak, aby sa usmial.","Zaspievaj refrén piesne nahlas v obchode.","Daj si 60 s studenú sprchu a komentuj to ako reportér.","Urob 30 drepov na verejnosti bez vysvetlenia.","Daj cudziemu človeku darček do 2 €.","Zjedz citrón a nezakri tvár.","Zahraj 20 s reklamu na obyčajný predmet vo svojej izbe.","Prejdi 100 m cúvaním po ulici.","Zatancuj 20 s tanec na verejnosti.","Zavolaj kamarátovi a urob mu telenovelové vyznanie.","Postav v prírode vežu z kameňov vyššiu ako 30 cm.","Objednaj si v obchode hlasom kráľa.","Predveď 20 s kúzelnícky trik.","Zjedz banán bez rúk.","Napíš a prednes báseň o najbližšom stromu.","Zjedz lyžičku horčice bez zmeny výrazu tváre.","Obleč si tričko naopak a choď tak do obchodu.","Rozosmej cudzieho človeka vtipom.","Urob 10 klikov v obchode medzi regálmi.","Hovor 1 minútu s kamarátom len v rýmoch.","Zjedz kúsok citróna a opíš jeho chuť ako sommelier.","Zahraj 30 s pantomímu na ulici.","Prejdi 50 m s ponožkou na hlave na verejnosti.","Prejdi 50 m po jednej línii dlažby ako po lane.","Zaspievaj ľudovú pieseň na zastávke.","Stoj 30 s ako socha v parku a nehýb sa.","Napíš 5 milých odkazov na lístky a rozdaj ich cudzím ľuďom.","Prednes motivačný prejav na verejnom mieste.","Skús v obchode vyjednať 10 % zľavu a natoč reakciu.","Vypi pohár vody bez použitia rúk.","Postav z vecí v izbe najvyššiu vežu do 2 minút.","Zahraj 30 s správy v televízii o niečom hlúpom.","Trafíš papierovou guľou kôš z 3 m do 10 pokusov.","Prejdi 100 m ako robot pred ľuďmi.","Vyrob a zjedz sendvič z troch nezvyčajných surovín.","Povedz 5 ľuďom úprimný kompliment do 5 minút.","Vykríkni na poli alebo kopci: „Som kráľ sveta!“","Predveď 30 s tanec z TikToku bez štipky hanby.","Objednaj si v obchode hlasom známej postavy.","Zahraj 20 s pesničku na hrnce a lyžice.","Vyjdi hore po schodoch pozadu.","Hlasno pochváľ 3 stromy ako ich najväčší fanúšik.","Rozprávaj 30 s vymysleným jazykom tak presvedčivo, ako sa len dá.","Zatancuj 15 s so kamarátom v dvojici ako vo filme.","Prejdi 50 m s knihou na hlave bez spadnutia.","Rozbehni sa a vykríkni: „Idem na Everest!“","Zahraj 20 s bitku so svojím tieňom ako bojový majster.","Prečítaj kamarátovi cez telefón 30 s list s vážnou tvárou.","Zjedz zdravú vec, ktorú nemáš rád, a ohodnoť ju 1 až 10.","Objednaj si jedlo hlasom robota.","Postav pevnosť z vankúšov a obráň ju 30 s pred kamarátom.","Natoč 20 s dokument o človeku ako David Attenborough.","Choď 200 m s taškou, akoby si nosil najťažší náklad na svete.","Vydrž 60 s bez smiechu, kým ti kamarát robí grimasy.","Objednaj si kávu operným hlasom."];
+const BONUS=["Zahraj 30 s scénu z filmu s aspoň dvoma cudzími ľuďmi.", "Predveď 30 s tanec pred aspoň piatimi cudzími ľuďmi.", "Zaspievaj v obchode pieseň a vyzbieraj potlesk od cudzinca.", "Zjedz za 2 minúty sendvič z piatich nezvyčajných surovín.", "Prejdi 300 m s niečím čudným na hlave a tvár sa pritom vážne.", "Nauč sa za 10 minút kúzelnícky trik a predveď ho cudziemu človeku.", "Zorganizuj súťaž s aspoň tromi ľuďmi a natoč finále.", "Nakresli kamarátovi portrét za 2 minúty a daj mu ho ako dar.", "Natoč 30 s reklamu na svoje mesto s cudzincom v zábere.", "Povedz 5 cudzím ľuďom úprimný kompliment a natoč aspoň jednu reakciu."];
+const qText=(m,n,id)=>{const g=gifts.find(x=>x.to===id&&x.n===n);if(g)return g.text+" (od "+g.by+")";const A=bonus(n)?BONUS:POOL;return A[(h((m.seed||id)+code)+n*7)%A.length]};
 const L=[[828,"Burdž Chalífa"],[1751,"Skalnaté pleso"],[2655,"Gerlach"],[4806,"Mont Blanc"],[5895,"Kilimandžáro"],[8849,"Mount Everest"]];
-let uid,nick,code,start,members=[],shown=false;
+let uid,nick,code,start,members=[],shown=false,gifts=[],lastLvl=null,lastRes=null;
 const h=s=>{let x=0;for(const c of s)x=(x*31+c.charCodeAt(0))>>>0;return x};
 const say=(t,b)=>{$("msg").textContent=t;$("msg").className=b?"bad":""};
 const cur=()=>{const e=Date.now()-start;return{n:Math.floor(e/(3*D)),t:e%(3*D)}};
 const closed=n=>{const c=cur();return n<c.n||(n==c.n&&c.t>=2*D)};
-const pts=m=>{let p=0;const c=cur();for(let n=m.resetN||0;n<=c.n;n++){const r=(m.results||{})[n]||(closed(n)?"fail":null);if(r)p+=V[r]}return p};
+const bonus=n=>n%3===2;
+const val=(m,n,r)=>{if(r==="fail")return V.fail;const b=V[r]*(bonus(n)?2:1),o=((m.ok||{})[n]||[]).length,x=((m.no||{})[n]||[]).length;if(members.length<2||(o>x&&o>=1))return b;if(x>o)return V.fail;return 0};
+const pts=m=>{let p=0;const c=cur();for(let n=m.resetN||0;n<=c.n;n++){const r=(m.results||{})[n]||(closed(n)?"fail":null);if(r)p+=val(m,n,r)}return p};
 const slug=n=>n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
 let regBusy=false;
 const showAcct=()=>{$("acct").hidden=false;$("join").hidden=true;$("app").hidden=true;$("nav").hidden=true;$("land").hidden=false};
@@ -135,6 +144,7 @@ async function enter(c){
   try{localStorage.setItem("sq2",JSON.stringify({code:c,nick}))}catch(e){}
   $("join").hidden=true;$("app").hidden=false;$("gc").textContent=c;$("pn").textContent=nick;$("nav").hidden=false;$("land").hidden=true;say("");
   onSnapshot(collection(db,"groups",c,"members"),s=>{members=s.docs.map(d=>({id:d.id,...d.data()}));render()});
+  onSnapshot(collection(db,"groups",c,"gifts"),s=>{gifts=s.docs.map(d=>({id:d.id,...d.data()}));render()});
   setInterval(render,60000);
 }
 const me=()=>members.find(m=>m.id===uid)||{};
@@ -164,26 +174,26 @@ function render(){
     if(d>=250)deco+=`<div style="position:absolute;left:0;right:0;bottom:30px;height:70px;background:linear-gradient(#0000,#ff7a1acc)"></div>`;
     lvl=z[2];under=d>=350?"Jadro Zeme. Koniec, môžeš reset.":"Si pod zemou.";
   }
-  $("scene").style.background=bg;$("deco").innerHTML=deco;$("lvl").textContent=lvl;$("above").textContent=under;
+  {const mk=lvl+"|"+under;if(lastLvl!==null&&lastLvl!==mk)sfx("lvl");lastLvl=mk}$("scene").style.background=bg;$("deco").innerHTML=deco;$("lvl").textContent=lvl;$("above").textContent=under;
   // quest
   const q=$("quest"),a=$("acts");a.textContent="";
   if(p<=-350){q.textContent="Si v jadre Zeme.";const b=document.createElement("button");b.textContent="Reset hry";b.className="p";b.onclick=()=>updateDoc(doc(db,"groups",code,"members",uid),{resetN:c.n+1});a.appendChild(b)}
   else if(c.t<2*D){
     const left=Math.ceil((2*D-c.t)/36e5),r=(m.results||{})[c.n];
-    q.textContent=POOL[(h((m.seed||uid)+code)+c.n*7)%POOL.length]+"  [zostáva "+left+" h]";
-    if(r){q.textContent+="  Odoslané: "+({full:"splnené",half:"čiastočne",fail:"nesplnené"})[r]}
+    q.textContent=(bonus(c.n)?"BONUS ×2: ":"")+qText(m,c.n,uid)+"  [zostáva "+left+" h]";
+    if(r){const vv=r==="fail"?"":(val(m,c.n,r)===0?" (čaká na potvrdenie kamoša)":val(m,c.n,r)<0?" (kamoši zamietli)":"");q.textContent+="  Odoslané: "+({full:"splnené",half:"čiastočne",fail:"nesplnené"})[r]+vv}
     else[["full","Splnil som","g"],["half","Čiastočne","" ],["fail","Nesplnil som","r"]].forEach(x=>{const b=document.createElement("button");b.textContent=x[1];b.className=x[2];b.onclick=()=>done(c.n,x[0]);a.appendChild(b)});
   }else q.textContent="Dnes oddych. Ďalšia misia o "+Math.ceil((3*D-c.t)/36e5)+" h.";
   // board
   const bd=$("board");bd.textContent="";
-  members.map(x=>({n:x.name,p:pts(x)})).sort((a,b)=>b.p-a.p).forEach((x,i)=>{const r=document.createElement("div");r.className="row";r.textContent=(i+1)+". "+x.n+" "+x.p+" b ("+x.p*12+" m)";bd.appendChild(r)});renderBadges();
+  members.map(x=>({n:x.name,p:pts(x)})).sort((a,b)=>b.p-a.p).forEach((x,i)=>{const r=document.createElement("div");r.className="row";r.textContent=(i+1)+". "+x.n+" "+x.p+" b ("+x.p*12+" m)";bd.appendChild(r)});renderBadges();renderConf();
 }
-async function done(n,r){
+async function done(n,r){lastRes=r;
   await updateDoc(doc(db,"groups",code,"members",uid),{["results."+n]:r});
   if(r==="fail"){sfx("fail");document.body.classList.add("shk");setTimeout(()=>document.body.classList.remove("shk"),700);$("fail").style.display="flex"}
   else{$("okt").textContent=r==="full"?"PRAVÝ BOJOVNÍK":"NEBOLO TO ZLÉ";$("coins").innerHTML=Array.from({length:22},(_,i)=>`<span class="cn" style="left:${(i*47)%94}%;animation-delay:${-(i%7)*.3}s">${COIN}</span>`).join("");sfx("win");$("okp").style.display="flex"}
 }
-$("fail").onclick=()=>{$("fail").style.display="none"};
+$("fail").onclick=()=>{$("fail").style.display="none";play()};
 const SKULL=[".wwwwww.","wwwwwwww","wkkwwkkw","wkkwwkkw","wwwkkwww",".wwwwww.",".wkwkwk.",".wwwwww."];
 const COIN=spr([".yyyy.","yywyyy","ywyyoy","yyyyoy","yyooyy",".yyyy."],4);
 let AC=null,mute=false;try{mute=localStorage.getItem("sq_mute")==="1"}catch(e){}
@@ -191,6 +201,8 @@ const note=(f,t,d,ty="square",v=.06,f2)=>{const o=AC.createOscillator(),g=AC.cre
 const sfx=k=>{if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();
 if(k==="click")note(660,0,.06);
 else if(k==="win"){[523,659,784,1047,1319].forEach((f,i)=>note(f,i*.09,.14));note(1568,.55,.3);note(1319,.7,.3)}
+else if(k==="lvl"){[392,523,659,784,1047].forEach((f,i)=>note(f,i*.08,.14,"triangle",.09))}
+else if(k==="ok"){note(880,0,.08);note(1320,.08,.14)}
 else if(k==="fail"){note(220,0,.5,"sawtooth",.08,55);note(70,.05,.7,"square",.1,30)}}catch(e){}};
 document.addEventListener("click",e=>{if(e.target.closest("button"))sfx("click")},true);
 const sndTxt=()=>{$("snd").textContent="Zvuk: "+(mute?"vypnutý":"zapnutý")};sndTxt();
@@ -215,7 +227,7 @@ $("vol").value=Math.round(vol*100);
 $("vol").oninput=()=>{vol=$("vol").value/100;if(MG)MG.gain.value=vol*.35;try{localStorage.setItem("sq_vol",String(vol))}catch(e){}};
 const MEDAL=[".kkkkk.","kcccwck","kccwcck","kccccck","kccccck","kccccck",".kkkkk."];
 const hist=m=>{const c=cur(),R=m.results||{};let run=0,mx=0,mn=0,full=0,half=0,st=0,bs=0,ph=false;
-for(let n=0;n<=c.n;n++){if(n===(m.resetN||0)&&n>0)run=0;const r=R[n]||(closed(n)?"fail":null);if(!r)continue;run+=V[r];mx=Math.max(mx,run);mn=Math.min(mn,run);if(mn<=-100&&run>=0)ph=true;
+for(let n=0;n<=c.n;n++){if(n===(m.resetN||0)&&n>0)run=0;const r=R[n]||(closed(n)?"fail":null);if(!r)continue;run+=val(m,n,r);mx=Math.max(mx,run);mn=Math.min(mn,run);if(mn<=-100&&run>=0)ph=true;
 if(r==="full"){full++;st++;bs=Math.max(bs,st)}else{st=0;if(r==="half")half++}}
 return{mx:mx*12,mn,full,half,bs,ph}};
 const B=[["first","Prvý krok","Splň prvú misiu",h=>h.full+h.half>=1,"y"],["s3","Hetrik","3 plné misie po sebe",h=>h.bs>=3,"y"],["s5","Nezastaviteľný","5 plných misií po sebe",h=>h.bs>=5,"o"],["f10","Desiatka","10 plných misií",h=>h.full>=10,"o"],
@@ -263,10 +275,23 @@ const im=$("cs"),sw=ss*W,sh=sw*im.naturalHeight/im.naturalWidth;x.drawImage(im,s
 stBlob=await new Promise(q=>c.toBlob(q,"image/png"));stopStream();$("cam").style.display="none";$("shi").src=URL.createObjectURL(stBlob);$("shm").textContent="Hotovo! Ulož alebo zdieľaj fotku.";$("shp").style.display="flex"};
 let dip=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dip=e});
 $("a2h").onclick=async()=>{if(dip){dip.prompt();dip=null}else $("a2t").hidden=!$("a2t").hidden};
+function renderConf(){
+  const cf=$("conf");cf.textContent="";const c=cur();let any=false;
+  members.forEach(x=>{if(x.id===uid)return;const R=x.results||{};Object.keys(R).forEach(k=>{const n=+k,r=R[k];if(r==="fail"||n<c.n-2)return;
+    if(((x.ok||{})[n]||[]).includes(uid)||((x.no||{})[n]||[]).includes(uid))return;
+    any=true;const d=document.createElement("div");d.className="row2";d.textContent=x.name+": "+({full:"splnil",half:"čiastočne"})[r]+" – "+qText(x,n,x.id);d.appendChild(document.createElement("br"));
+    [["✓ Videl som","g",1],["✗ Nesedí","r",0]].forEach(b=>{const bt=document.createElement("button");bt.textContent=b[0];bt.className=b[1];bt.onclick=()=>{sfx("ok");updateDoc(doc(db,"groups",code,"members",x.id),{[(b[2]?"ok.":"no.")+n]:arrayUnion(uid)})};d.appendChild(bt)});cf.appendChild(d)})});
+  if(!any)cf.textContent="Nič na potvrdenie.";
+  const sel=$("gto"),v0=sel.value;sel.textContent="";members.filter(x=>x.id!==uid).forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.name;sel.appendChild(o)});if(v0)sel.value=v0;
+  const gl=$("gl");gl.textContent="";gifts.filter(g=>g.byId===uid).forEach(g=>{const d=document.createElement("div");d.className="row";d.textContent=(g.toName||"?")+": "+g.text;gl.appendChild(d)});
+}
+$("gsd").onclick=async()=>{const to=$("gto").value,tx=$("gtx").value.trim();if(!to||tx.length<5){say("Vyber kamoša a napíš misiu (aspoň 5 znakov).",true);return}
+  const tm=members.find(x=>x.id===to);try{await addDoc(collection(db,"groups",code,"gifts"),{to,toName:tm?tm.name:"",n:cur().n+1,text:tx,by:nick,byId:uid,ts:Date.now()});$("gtx").value="";sfx("ok");say("Poslané. Kamoš ju dostane v ďalšej misii.")}catch(e){say("Chyba: "+(e.code||e.message),true)}};
+const play=()=>{const hr=$("hero"),cl=lastRes==="fail"?"fll":"jmp";hr.classList.add(cl);setTimeout(()=>hr.classList.remove(cl),1200);lastRes=null};
 $("hero").innerHTML=spr(HERO,3);$("lhero").innerHTML=spr(HERO,6);
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));["mis","reb","odz","prof"].forEach(v=>{$("v-"+v).hidden=v!==b.dataset.v});scrollTo(0,0)});
 $("snap").onclick=()=>{location.href="snapchat://"};
-$("home").onclick=()=>{$("okp").style.display="none";scrollTo(0,0)};
+$("home").onclick=()=>{$("okp").style.display="none";scrollTo(0,0);play()};
 $("leave").onclick=()=>{try{localStorage.removeItem("sq2")}catch(e){}location.reload()};
 </script>
 </body>
