@@ -45,6 +45,8 @@ main{padding-bottom:96px!important}
 #coins{position:fixed;inset:0;pointer-events:none;overflow:hidden}.cn{position:absolute;top:-30px;animation:cf 2.2s linear infinite}
 @keyframes cf{to{transform:translateY(110vh) rotate(360deg)}}@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes bs{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}.shk main{animation:bs .15s 4}
+input[type=range]{padding:0;accent-color:var(--hi)}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bg{display:flex;flex-direction:column;align-items:center;text-align:center;font-size:8px;line-height:1.6;border:3px solid var(--ink);padding:8px 4px}.bg b{margin-top:6px}.bg span{opacity:.75}.bg.lock{filter:grayscale(1);opacity:.4}
 #hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob 1s steps(2) infinite}
 #path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
@@ -74,8 +76,8 @@ main{padding-bottom:96px!important}
 <div class="box"><h2>Misia</h2><div id="quest"></div><div id="acts"></div></div>
 </div>
 <div id="v-reb" hidden><div class="box"><h2>Rebríček</h2><div id="board"></div></div></div>
-<div id="v-odz" hidden><div class="box"><h2>Odznaky</h2><p>Odznaky prídu v ďalšej aktualizácii.</p></div></div>
-<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="snd">Zvuk: zapnutý</button><button id="leave" class="r">Zmeniť skupinu</button></div></div>
+<div id="v-odz" hidden><div class="box"><h2>Odznaky <span id="bcnt"></span></h2><div id="bdg" class="bgrid"></div></div></div>
+<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
 </div>
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
@@ -157,7 +159,7 @@ function render(){
   }else q.textContent="Dnes oddych. Ďalšia misia o "+Math.ceil((3*D-c.t)/36e5)+" h.";
   // board
   const bd=$("board");bd.textContent="";
-  members.map(x=>({n:x.name,p:pts(x)})).sort((a,b)=>b.p-a.p).forEach((x,i)=>{const r=document.createElement("div");r.className="row";r.textContent=(i+1)+". "+x.n+" "+x.p+" b ("+x.p*12+" m)";bd.appendChild(r)});
+  members.map(x=>({n:x.name,p:pts(x)})).sort((a,b)=>b.p-a.p).forEach((x,i)=>{const r=document.createElement("div");r.className="row";r.textContent=(i+1)+". "+x.n+" "+x.p+" b ("+x.p*12+" m)";bd.appendChild(r)});renderBadges();
 }
 async function done(n,r){
   await updateDoc(doc(db,"groups",code,"members",uid),{["results."+n]:r});
@@ -177,6 +179,37 @@ document.addEventListener("click",e=>{if(e.target.closest("button"))sfx("click")
 const sndTxt=()=>{$("snd").textContent="Zvuk: "+(mute?"vypnutý":"zapnutý")};sndTxt();
 $("snd").onclick=()=>{mute=!mute;try{localStorage.setItem("sq_mute",mute?"1":"0")}catch(e){}sndTxt()};
 $("tung").innerHTML=spr(SKULL,10);
+const mf=m=>440*2**((m-69)/12);
+let MG=null,mus=true,vol=.5,mstep=0,mtm=null,mnext=0;
+try{mus=localStorage.getItem("sq_mus")!=="0";const v=parseFloat(localStorage.getItem("sq_vol"));if(!isNaN(v))vol=v}catch(e){}
+const mn_=(f,T,d,ty,v,f2)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.setValueAtTime(f,T);if(f2)o.frequency.exponentialRampToValueAtTime(f2,T+d);g.gain.setValueAtTime(v,T);g.gain.exponentialRampToValueAtTime(.0001,T+d);o.connect(g);g.connect(MG);o.start(T);o.stop(T+d+.02)};
+const ROOT=[45,41,48,43],CH=[[69,72,76],[65,69,72],[72,76,79],[67,71,74]],BP=[0,0,12,0,0,12,0,7],AP=[0,1,2,1,0,1,2,1],sd=60/116/2;
+const mtick=()=>{if(!AC||!mus||!MG)return;while(mnext<AC.currentTime+.3){const b=Math.floor(mstep/8)%4,i=mstep%8,T=mnext;
+mn_(mf(ROOT[b]+BP[i]),T,sd*.9,"sawtooth",.22);mn_(mf(CH[b][AP[i]]),T,sd*.8,"square",.09);
+if(i===0||i===4)mn_(120,T,.14,"sine",.5,40);if(i%2===1)mn_(9000,T,.03,"square",.03);
+mnext+=sd;mstep++}};
+const mstart=()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();if(!MG){MG=AC.createGain();MG.connect(AC.destination)}MG.gain.value=vol*.35;if(!mtm){mnext=AC.currentTime+.1;mtm=setInterval(mtick,100)}}catch(e){}};
+const mstop=()=>{clearInterval(mtm);mtm=null};
+document.addEventListener("click",()=>{if(mus&&!mtm)mstart()},true);
+document.addEventListener("visibilitychange",()=>{if(!AC)return;document.hidden?AC.suspend():AC.resume()});
+const musTxt=()=>{$("mus").textContent="Hudba: "+(mus?"zapnutá":"vypnutá")};musTxt();
+$("mus").onclick=()=>{mus=!mus;try{localStorage.setItem("sq_mus",mus?"1":"0")}catch(e){}musTxt();mus?mstart():mstop()};
+$("vol").value=Math.round(vol*100);
+$("vol").oninput=()=>{vol=$("vol").value/100;if(MG)MG.gain.value=vol*.35;try{localStorage.setItem("sq_vol",String(vol))}catch(e){}};
+const MEDAL=[".kkkkk.","kcccwck","kccwcck","kccccck","kccccck","kccccck",".kkkkk."];
+const hist=m=>{const c=cur(),R=m.results||{};let run=0,mx=0,mn=0,full=0,half=0,st=0,bs=0,ph=false;
+for(let n=0;n<=c.n;n++){if(n===(m.resetN||0)&&n>0)run=0;const r=R[n]||(closed(n)?"fail":null);if(!r)continue;run+=V[r];mx=Math.max(mx,run);mn=Math.min(mn,run);if(mn<=-100&&run>=0)ph=true;
+if(r==="full"){full++;st++;bs=Math.max(bs,st)}else{st=0;if(r==="half")half++}}
+return{mx:mx*12,mn,full,half,bs,ph}};
+const B=[["first","Prvý krok","Splň prvú misiu",h=>h.full+h.half>=1,"y"],["s3","Hetrik","3 plné misie po sebe",h=>h.bs>=3,"y"],["s5","Nezastaviteľný","5 plných misií po sebe",h=>h.bs>=5,"o"],["f10","Desiatka","10 plných misií",h=>h.full>=10,"o"],
+...L.map(l=>["l"+l[0],l[1],"Vyšplhaj sa nad "+l[0]+" m",h=>h.mx>=l[0],"c"]),
+["u1","Krt","Zostúp pod -80 b",h=>h.mn<=-80,"n"],["u2","Jadro Zeme","Zostúp na -350 b",h=>h.mn<=-350,"r"],["ph","Fénix","Vráť sa z -100 b nad nulu",h=>h.ph,"m"]];
+function renderBadges(){const h=hist(me()),bx=$("bdg");bx.textContent="";let got=0,fresh=[],seen=[];
+try{seen=JSON.parse(localStorage.getItem("sq_bd_"+code)||"[]")}catch(e){}
+B.forEach(b=>{const ok=b[3](h);if(ok){got++;if(!seen.includes(b[0]))fresh.push(b)}
+const d=document.createElement("div");d.className="bg"+(ok?"":" lock");d.innerHTML=spr(MEDAL.map(q=>q.replace(/c/g,b[4])),5)+`<b>${b[1]}</b><span>${b[2]}</span>`;bx.appendChild(d)});
+$("bcnt").textContent=got+" / "+B.length;
+if(fresh.length){try{localStorage.setItem("sq_bd_"+code,JSON.stringify(seen.concat(fresh.map(b=>b[0]))))}catch(e){}say("Nový odznak: "+fresh.map(b=>b[1]).join(", "));if(seen.length)sfx("win")}}
 $("hero").innerHTML=spr(HERO,4);$("lhero").innerHTML=spr(HERO,8);
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));["mis","reb","odz","prof"].forEach(v=>{$("v-"+v).hidden=v!==b.dataset.v});scrollTo(0,0)});
 $("snap").onclick=()=>{location.href="snapchat://"};
