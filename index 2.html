@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sidequest: Everest</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<style>
+:root{--bg:#6ec6ff;--ink:#14123a;--card:#fff8d6;--hi:#ff4fa3;--gold:#ffd400;--ok:#1f9d55;--bad:#d62839;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0f33;--ink:#f4f1ff;--card:#1a1e54;--ok:#47e08a;--bad:#ff6b7a}}
+:root[data-theme="dark"]{--bg:#0b0f33;--ink:#f4f1ff;--card:#1a1e54;--ok:#47e08a;--bad:#ff6b7a}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:11px/1.8 "Press Start 2P",ui-monospace,monospace}
+main{max-width:460px;margin:0 auto;padding:12px}
+h1{font-size:15px;margin:6px 0;line-height:1.4}h2{font-size:11px;margin:0 0 8px}
+.box{background:var(--card);border:4px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:12px;margin:14px 0}
+input,button{font:inherit;color:var(--ink);background:var(--bg);border:3px solid var(--ink);padding:10px;width:100%;box-sizing:border-box;margin:4px 0}
+button{background:var(--gold);color:#14123a;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+button.p{background:var(--hi);color:#fff}button.g{background:#5fd38d}button.r{background:#ff7a7a}
+button:active{transform:translate(2px,2px)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+#scene{position:relative;height:200px;border:4px solid var(--ink);overflow:hidden;image-rendering:pixelated;box-shadow:5px 5px 0 var(--ink)}
+#deco{position:absolute;inset:0;font-size:22px;line-height:1}
+#deco span{position:absolute}
+#hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob 1s steps(2) infinite}
+#path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
+.hud{display:flex;justify-content:space-between;gap:6px;margin:10px 0}.big{font-size:15px;color:var(--hi)}
+.row{display:flex;justify-content:space-between;border-bottom:2px dashed var(--ink);padding:3px 0}
+#fail,#okp{position:fixed;inset:0;background:rgba(10,8,30,.92);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9;text-align:center;padding:20px;color:#fff;cursor:pointer}
+#okp button{max-width:320px}#tung{font-size:84px;animation:sh .3s infinite}@keyframes sh{50%{transform:rotate(-8deg) translateY(-6px)}}
+#msg{min-height:2em}.bad{color:var(--bad)}[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Sidequest: Everest</h1>
+<div id="join" class="box">
+<input id="nick" placeholder="Tvoja prezývka" maxlength="14" autocomplete="off">
+<button id="mk" class="p">Nová skupina</button>
+<input id="cd" placeholder="Kód skupiny" maxlength="5" autocomplete="off">
+<button id="jn">Pripojiť sa</button>
+</div>
+<div id="app" hidden>
+<div id="scene"><div id="deco"></div><div id="hero">🧗</div><div id="path"></div></div>
+<div class="hud"><div><div class="big" id="alt"></div><div id="pts"></div></div><div id="lvl" style="text-align:right"></div></div>
+<div id="above"></div>
+<div class="box"><h2>Misia</h2><div id="quest"></div><div id="acts"></div></div>
+<div class="box"><h2>Rebríček</h2><div id="board"></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="leave" class="r">Zmeniť skupinu</button></div>
+</div>
+<div id="msg" role="status" aria-live="polite"></div>
+</main>
+<div id="okp"><div style="font-size:60px">✅</div><p>Misia odoslaná!</p><p>Natoč dôkaz v Snapchate.</p><button id="snap" class="g">Otvoriť Snapchat</button><button id="home">Späť na úvod</button></div>
+<div id="fail"><div id="tung">🪵</div><p>TUNG TUNG TUNG SAHUR hovorí:</p><p>LOSER. BROKE. LWK GAY.<br>A mas ustupujucu liniu vlasov.</p><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,updateDoc,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyC-WkbHfU7VNrSdv_d9juWMgbQ8CprJX04",authDomain:"sidequest-f6fe8.firebaseapp.com",projectId:"sidequest-f6fe8",storageBucket:"sidequest-f6fe8.firebasestorage.app",messagingSenderId:"205425497277",appId:"1:205425497277:web:19e93981e5f846414f93d4"};
+const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
+const $=id=>document.getElementById(id),D=864e5,V={full:50,half:25,fail:-25};
+const POOL=["Vypi 0,5 l Sprite a zajedz to banánom.","Zjedz celý burger do 60 sekúnd.","Zahraj scénu z romantického filmu, kde vyznávaš lásku.","Choď do lesa a hraj sa na vlka: zavýjaj a loviť.","Rozkúr oheň len drevom, na povolenom mieste a s vodou po ruke.","Oslov cudzieho človeka a pochváľ ho tak, aby sa usmial.","Zaspievaj refrén piesne nahlas v obchode.","Daj si 60 s studenú sprchu a komentuj to ako reportér.","Urob 30 drepov na verejnosti bez vysvetlenia.","Daj cudziemu človeku darček do 2 €.","Zjedz citrón a nezakri tvár.","Zahraj 20 s reklamu na obyčajný predmet vo svojej izbe.","Prejdi 100 m cúvaním po ulici.","Zatancuj 20 s tanec na verejnosti.","Zavolaj kamarátovi a urob mu telenovelové vyznanie.","Postav v prírode vežu z kameňov vyššiu ako 30 cm.","Objednaj si v obchode hlasom kráľa.","Predveď 20 s kúzelnícky trik.","Zjedz banán bez rúk.","Napíš a prednes báseň o najbližšom stromu."];
+const L=[[828,"Burdž Chalífa"],[1751,"Skalnaté pleso"],[2655,"Gerlach"],[4806,"Mont Blanc"],[5895,"Kilimandžáro"],[8849,"Mount Everest"]];
+let uid,nick,code,start,members=[],shown=false;
+const h=s=>{let x=0;for(const c of s)x=(x*31+c.charCodeAt(0))>>>0;return x};
+const say=(t,b)=>{$("msg").textContent=t;$("msg").className=b?"bad":""};
+const cur=()=>{const e=Date.now()-start;return{n:Math.floor(e/(3*D)),t:e%(3*D)}};
+const closed=n=>{const c=cur();return n<c.n||(n==c.n&&c.t>=2*D)};
+const pts=m=>{let p=0;const c=cur();for(let n=m.resetN||0;n<=c.n;n++){const r=(m.results||{})[n]||(closed(n)?"fail":null);if(r)p+=V[r]}return p};
+onAuthStateChanged(auth,u=>{if(u){uid=u.uid;try{const s=JSON.parse(localStorage.getItem("sq2")||"null");if(s){nick=s.nick;enter(s.code)}}catch(e){}}});
+signInAnonymously(auth).catch(e=>say("Prihlásenie zlyhalo: "+e.code,true));
+const rnd=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
+const gn=()=>{nick=$("nick").value.trim();if(!nick)say("Zadaj prezývku.",true);return nick};
+$("mk").onclick=async()=>{if(!gn()||!uid)return;try{const c=rnd();await setDoc(doc(db,"groups",c),{start:Date.now()});await enter(c)}catch(e){say("Chyba: "+e.code,true)}};
+$("jn").onclick=async()=>{if(!gn()||!uid)return;try{await enter($("cd").value.trim().toUpperCase())}catch(e){say("Chyba: "+e.code,true)}};
+async function enter(c){
+  const g=await getDoc(doc(db,"groups",c));
+  if(!g.exists()){say("Takáto skupina neexistuje.",true);return}
+  code=c;start=g.data().start;
+  await setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true});
+  try{localStorage.setItem("sq2",JSON.stringify({code:c,nick}))}catch(e){}
+  $("join").hidden=true;$("app").hidden=false;$("gc").textContent=c;say("");
+  onSnapshot(collection(db,"groups",c,"members"),s=>{members=s.docs.map(d=>({id:d.id,...d.data()}));render()});
+  setInterval(render,60000);
+}
+const me=()=>members.find(m=>m.id===uid)||{};
+function render(){
+  const m=me(),p=pts(m),alt=Math.max(0,p*12),c=cur();
+  $("pts").textContent=p+" b";
+  $("alt").textContent=(p>=0?alt+" m":"-"+(-p*12)+" m");
+  let deco="",bg,lvl,under="";
+  if(p>=0){
+    const n=Math.min(9,Math.floor(alt/600));
+    for(let i=0;i<n;i++)deco+=`<span style="left:${(i*37)%86+4}%;top:${(i*53)%60+4}%">☁️</span>`;
+    bg=alt<4000?"linear-gradient(#6ec6ff,#bfe6ff)":"linear-gradient(#1b4e9b,#6ec6ff)";
+    lvl=alt<828?"Turista":alt<2655?"Horolezec":alt<4806?"Skialpinista":alt<8849?"Sherpa":"Legenda";
+    let l=null;for(const x of L)if(alt>=x[0])l=x[1];
+    under=alt>=8849?"VRCHOL! Si na Evereste!":l?"Si vyššie ako: "+l:"Ešte si pri zemi.";
+  }else{
+    const d=-p,z=d<80?["🪱","#7a4a22","Dážďovka"]:d<160?["🟤","#5a3416","Krt"]:d<250?["💎","#3d2a3a","Baník"]:d<350?["🔥","#5a1d12","Baník"]:["🌋","#b3260f","Lávový muž"];
+    for(let i=0;i<7;i++)deco+=`<span style="left:${(i*41)%88+4}%;top:${(i*29)%70+8}%">${z[0]}</span>`;
+    bg=z[1];lvl=z[2];under=d>=350?"Jadro Zeme. Koniec, môžeš reset.":"Si pod zemou.";
+  }
+  $("scene").style.background=bg;$("deco").innerHTML=deco;$("lvl").textContent=lvl;$("above").textContent=under;
+  // quest
+  const q=$("quest"),a=$("acts");a.textContent="";
+  if(p<=-350){q.textContent="Si v jadre Zeme.";const b=document.createElement("button");b.textContent="Reset hry";b.className="p";b.onclick=()=>updateDoc(doc(db,"groups",code,"members",uid),{resetN:c.n+1});a.appendChild(b)}
+  else if(c.t<2*D){
+    const left=Math.ceil((2*D-c.t)/36e5),r=(m.results||{})[c.n];
+    q.textContent=POOL[(h(uid)%20+c.n*3)%20]+"  [zostáva "+left+" h]";
+    if(r){q.textContent+="  Odoslané: "+({full:"splnené",half:"čiastočne",fail:"nesplnené"})[r]}
+    else[["full","Splnil som","g"],["half","Čiastočne","" ],["fail","Nesplnil som","r"]].forEach(x=>{const b=document.createElement("button");b.textContent=x[1];b.className=x[2];b.onclick=()=>done(c.n,x[0]);a.appendChild(b)});
+  }else q.textContent="Dnes oddych. Ďalšia misia o "+Math.ceil((3*D-c.t)/36e5)+" h.";
+  // board
+  const bd=$("board");bd.textContent="";
+  members.map(x=>({n:x.name,p:pts(x)})).sort((a,b)=>b.p-a.p).forEach((x,i)=>{const r=document.createElement("div");r.className="row";r.textContent=(i+1)+". "+x.n+" "+x.p+" b ("+x.p*12+" m)";bd.appendChild(r)});
+}
+async function done(n,r){
+  await updateDoc(doc(db,"groups",code,"members",uid),{["results."+n]:r});
+  if(r==="fail"){$("fail").style.display="flex"}
+  else{$("okp").style.display="flex"}
+}
+$("fail").onclick=()=>{$("fail").style.display="none"};
+$("snap").onclick=()=>{location.href="snapchat://"};
+$("home").onclick=()=>{$("okp").style.display="none";scrollTo(0,0)};
+$("leave").onclick=()=>{try{localStorage.removeItem("sq2")}catch(e){}location.reload()};
+</script>
+</body>
+</html>
