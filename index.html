@@ -47,6 +47,10 @@ main{padding-bottom:96px!important}
 @keyframes bs{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}.shk main{animation:bs .15s 4}
 input[type=range]{padding:0;accent-color:var(--hi)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bg{display:flex;flex-direction:column;align-items:center;text-align:center;font-size:8px;line-height:1.6;border:3px solid var(--ink);padding:8px 4px}.bg b{margin-top:6px}.bg span{opacity:.75}.bg.lock{filter:grayscale(1);opacity:.4}
+#cam{position:fixed;inset:0;background:#000;z-index:12;display:none}#cv{width:100%;height:100%;object-fit:cover}
+#cs{position:absolute;transform:translate(-50%,-50%);touch-action:none;cursor:grab;height:auto;filter:drop-shadow(0 0 8px #0008)}
+#cbar{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#000a;display:flex;flex-direction:column;gap:4px}
+#cbar .r2{display:flex;gap:6px}#cbar button{margin:0}#cm{color:#fff;font-size:9px}
 #hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob 1s steps(2) infinite}
 #path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
@@ -82,7 +86,8 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
 <div id="okp"><div id="coins"></div><h2 id="okt"></h2><p>Misia odoslaná!<br>Natoč dôkaz v Snapchate.</p><button id="snap" class="g">Otvoriť Snapchat</button><button id="home">Späť na úvod</button></div>
-<div id="shp"><p>Tvoja nálepka</p><img id="shi" alt="Nálepka"><p id="shm" style="min-height:2.4em"></p><button id="cpy" class="g">Kopírovať nálepku</button><button id="sav">Uložiť / Zdieľať</button><button id="cls">Zavrieť</button></div>
+<div id="shp"><p>Tvoja nálepka</p><img id="shi" alt="Nálepka"><p id="shm" style="min-height:2.4em"></p><button id="cpy" class="g">Kopírovať</button><button id="sav">Uložiť / Zdieľať</button><button id="cam1" class="p">Odfotiť s nálepkou</button><button id="cls">Zavrieť</button></div>
+<div id="cam"><video id="cv" playsinline muted autoplay></video><img id="cs" alt="Nálepka"><div id="cbar"><div id="cm">Posúvaj nálepku prstom.</div><input id="csz" type="range" min="25" max="90" value="55" aria-label="Veľkosť"><div class="r2"><button id="csn" class="g">Odfotiť</button><button id="cfl">Otočiť</button><button id="cx">Zavrieť</button></div></div></div>
 <nav id="nav" hidden><button data-v="mis" class="on">Misia</button><button data-v="reb">Rebríček</button><button data-v="odz">Odznaky</button><button data-v="prof">Profil</button></nav>
 <div id="fail"><div id="tung"></div><h2 class="ft">Ty teda vieš ako skaziť zábavu, presne preto nemáš frajerku.</h2><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
 <script type="module">
@@ -229,6 +234,22 @@ $("shr").onclick=async()=>{stBlob=await mkSticker();$("shi").src=URL.createObjec
 $("cpy").onclick=async()=>{try{await navigator.clipboard.write([new ClipboardItem({"image/png":stBlob})]);$("shm").textContent="Skopírované. V Instagrame otvor story, ťukni na obrazovku a vlož nálepku."}catch(e){$("shm").textContent="Kopírovanie nejde. Použi Uložiť / Zdieľať."}};
 $("sav").onclick=async()=>{const f=new File([stBlob],"horolezec.png",{type:"image/png"});try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});else{const a=document.createElement("a");a.href=URL.createObjectURL(stBlob);a.download="horolezec.png";a.click()}}catch(e){}};
 $("cls").onclick=()=>{$("shp").style.display="none"};
+let strm=null,fc="environment",sx=.5,sy=.35,ss=.55,dg=null;
+const place=()=>{const e=$("cs");e.style.left=sx*100+"%";e.style.top=sy*100+"%";e.style.width=ss*100+"%"};
+const stopStream=()=>{if(strm){strm.getTracks().forEach(t=>t.stop());strm=null}};
+async function startStream(){stopStream();try{strm=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:fc},width:{ideal:1920},height:{ideal:1080}},audio:false});const v=$("cv");v.muted=true;v.srcObject=strm;await v.play();$("cm").textContent="Posúvaj nálepku prstom."}catch(e){$("cm").textContent="Kamera sa nepodarila otvoriť. Povoľ ju v nastaveniach prehliadača."}}
+$("cam1").onclick=async()=>{$("shp").style.display="none";try{const b=await mkSticker();$("cs").src=URL.createObjectURL(b)}catch(e){}place();$("cam").style.display="block";startStream()};
+$("cfl").onclick=()=>{fc=fc==="environment"?"user":"environment";startStream()};
+$("cx").onclick=()=>{stopStream();$("cam").style.display="none"};
+$("csz").oninput=()=>{ss=$("csz").value/100;place()};
+const cse=$("cs");
+cse.onpointerdown=e=>{dg={x:e.clientX,y:e.clientY,sx,sy};cse.setPointerCapture(e.pointerId)};
+cse.onpointermove=e=>{if(!dg)return;const cm=$("cam");sx=Math.min(1,Math.max(0,dg.sx+(e.clientX-dg.x)/cm.clientWidth));sy=Math.min(1,Math.max(0,dg.sy+(e.clientY-dg.y)/cm.clientHeight));place()};
+cse.onpointerup=cse.onpointercancel=()=>{dg=null};
+$("csn").onclick=async()=>{const v=$("cv");if(!v.videoWidth)return;const cm=$("cam"),W=1080,H=Math.round(cm.clientHeight*W/cm.clientWidth),c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+const k=Math.max(W/v.videoWidth,H/v.videoHeight),dw=v.videoWidth*k,dh=v.videoHeight*k;x.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh);
+const im=$("cs"),sw=ss*W,sh=sw*im.naturalHeight/im.naturalWidth;x.drawImage(im,sx*W-sw/2,sy*H-sh/2,sw,sh);
+stBlob=await new Promise(q=>c.toBlob(q,"image/png"));stopStream();$("cam").style.display="none";$("shi").src=URL.createObjectURL(stBlob);$("shm").textContent="Hotovo! Ulož alebo zdieľaj fotku.";$("shp").style.display="flex"};
 $("hero").innerHTML=spr(HERO,4);$("lhero").innerHTML=spr(HERO,8);
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));["mis","reb","odz","prof"].forEach(v=>{$("v-"+v).hidden=v!==b.dataset.v});scrollTo(0,0)});
 $("snap").onclick=()=>{location.href="snapchat://"};
