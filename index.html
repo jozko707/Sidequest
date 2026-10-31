@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sidequest: Everest</title>
+<title>Horolezec</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 <style>
 :root{--bg:#6ec6ff;--ink:#14123a;--card:#fff8d6;--hi:#ff4fa3;--gold:#ffd400;--ok:#1f9d55;--bad:#d62839;
@@ -29,6 +29,17 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 .sn{animation:fall 5s linear infinite;font-size:14px}@keyframes fall{from{transform:translateY(-20px)}to{transform:translateY(210px)}}
 .tw{animation:tw 2s steps(2) infinite}@keyframes tw{50%{opacity:.2}}
 .wm{animation:cr 6s ease-in-out infinite alternate}@keyframes cr{to{transform:translateX(40px)}}
+h1{font-size:22px!important;text-align:center;color:var(--gold);letter-spacing:.06em;text-shadow:3px 3px 0 var(--ink),0 0 14px var(--hi)}
+#land{text-align:center;margin-top:4vh}#lhero{display:flex;justify-content:center;filter:drop-shadow(0 0 10px var(--hi))}.tag{line-height:2;margin:14px 6px}
+main{padding-bottom:96px!important}
+#scene{box-shadow:0 0 18px #ff4fa3aa,5px 5px 0 var(--ink)!important}#scene::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(#0000 0 3px,#0000001f 3px 4px);pointer-events:none}
+#path{background:repeating-linear-gradient(90deg,#ff4fa3 0 2px,#0000 2px 16px),#1a1550!important;border-top:4px solid #00e5ff!important;box-shadow:0 -4px 12px #00e5ff88}
+#hero{font-size:0!important;filter:drop-shadow(0 0 6px #ff4fa3)}
+.sun,.moon{position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%}.sun{background:linear-gradient(#ffd400,#ff4fa3);box-shadow:0 0 16px #ff4fa3}.moon{background:#e8e6ff;box-shadow:0 0 14px #c9a0ff}
+#deco .lm{left:8px;bottom:36px;font-size:8px;background:#14123acc;color:#ffd400;padding:3px 5px}
+.bd{animation:flap .4s steps(2) infinite}@keyframes flap{50%{transform:scaleY(.6)}}.sn{color:#fff}
+#nav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:4px solid var(--ink);z-index:5}
+#nav button{margin:0;padding:10px 2px;font-size:8px;box-shadow:none}#nav button.on{background:var(--hi);color:#fff}
 #hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob 1s steps(2) infinite}
 #path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
@@ -42,7 +53,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 </head>
 <body>
 <main>
-<h1>Sidequest: Everest</h1>
+<h1>HOROLEZEC</h1>
+<div id="land"><div id="lhero"></div><p class="tag">Každé 3 dni nová bláznivá misia. Splň ju, natoč dôkaz a vyšplhaj sa na Mount Everest. Kto zlyhá, padá pod zem až k jadru.</p></div>
 <div id="join" class="box">
 <input id="nick" placeholder="Tvoja prezývka" maxlength="14" autocomplete="off">
 <button id="mk" class="p">Nová skupina</button>
@@ -50,15 +62,20 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 <button id="jn">Pripojiť sa</button>
 </div>
 <div id="app" hidden>
-<div id="scene"><div id="deco"></div><div id="hero">🧗</div><div id="path"></div></div>
+<div id="v-mis">
+<div id="scene"><div id="deco"></div><div id="hero"></div><div id="path"></div></div>
 <div class="hud"><div><div class="big" id="alt"></div><div id="pts"></div></div><div id="lvl" style="text-align:right"></div></div>
 <div id="above"></div>
 <div class="box"><h2>Misia</h2><div id="quest"></div><div id="acts"></div></div>
-<div class="box"><h2>Rebríček</h2><div id="board"></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="leave" class="r">Zmeniť skupinu</button></div>
+</div>
+<div id="v-reb" hidden><div class="box"><h2>Rebríček</h2><div id="board"></div></div></div>
+<div id="v-odz" hidden><div class="box"><h2>Odznaky</h2><p>Odznaky prídu v ďalšej aktualizácii.</p></div></div>
+<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="leave" class="r">Zmeniť skupinu</button></div></div>
 </div>
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
 <div id="okp"><div style="font-size:60px">✅</div><p>Misia odoslaná!</p><p>Natoč dôkaz v Snapchate.</p><button id="snap" class="g">Otvoriť Snapchat</button><button id="home">Späť na úvod</button></div>
+<nav id="nav" hidden><button data-v="mis" class="on">Misia</button><button data-v="reb">Rebríček</button><button data-v="odz">Odznaky</button><button data-v="prof">Profil</button></nav>
 <div id="fail"><div id="tung">🪵</div><p>TUNG TUNG TUNG SAHUR hovorí:</p><p>LOSER. BROKE. LWK GAY.<br>A mas ustupujucu liniu vlasov.</p><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -67,6 +84,10 @@ import {initializeFirestore,doc,getDoc,setDoc,updateDoc,collection,onSnapshot} f
 const firebaseConfig={apiKey:"AIzaSyC-WkbHfU7VNrSdv_d9juWMgbQ8CprJX04",authDomain:"sidequest-f6fe8.firebaseapp.com",projectId:"sidequest-f6fe8",storageBucket:"sidequest-f6fe8.firebasestorage.app",messagingSenderId:"205425497277",appId:"1:205425497277:web:19e93981e5f846414f93d4"};
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=initializeFirestore(fb,{experimentalAutoDetectLongPolling:true});
 const $=id=>document.getElementById(id),D=864e5,V={full:50,half:25,fail:-25};
+const PAL={k:"#14123a",s:"#ffd7a8",r:"#ff4fa3",y:"#ffd400",c:"#00e5ff",w:"#ffffff",g:"#9aa3c7",b:"#2b3a8f",o:"#ff8a3d",n:"#7a4a22",m:"#c9a0ff"};
+const spr=(g,sc,cl="")=>{let q="";g.forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!==".")q+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[ch]}"/>`}));return `<svg class="${cl}" viewBox="0 0 ${g[0].length} ${g.length}" width="${g[0].length*sc}" height="${g.length*sc}" shape-rendering="crispEdges">${q}</svg>`};
+const HERO=["..rrrrr..",".rrrrrrr.",".sssssss.",".sksssks.","..sssss..",".yccccccc","yyccccccc","yyccccccs","..bbbbb..","..bb.bb..","..bb.bb..",".kkk.kkk."];
+const SP={cl:spr(["....www.......","..wwwwwww.ww..",".wwwwwwwwwwww.","wwwwwwwwwwwwww",".gggggggggggg."],3),bd:spr(["m.......m",".mm...mm.","..mmrmm..","....y...."],3,"bd"),st:spr([".y.","yyy",".y."],3),wm:spr([".rrr.rrr.","rkrrrrrrr"],3),pb:spr([".nn.","nnnn","nnnn"],3),gm:spr(["..ccc..",".cwccc.","ccwcccc","cccccbc",".ccccb.","..cbc.."],3),fr:spr(["..o..",".oyo.","ooyoo","ooooo"],3)};
 const POOL=["Vypi 0,5 l Sprite a zajedz to banánom.","Zjedz celý burger do 60 sekúnd.","Zahraj scénu z romantického filmu, kde vyznávaš lásku.","Choď do lesa a hraj sa na vlka: zavýjaj a loviť.","Rozkúr oheň len drevom, na povolenom mieste a s vodou po ruke.","Oslov cudzieho človeka a pochváľ ho tak, aby sa usmial.","Zaspievaj refrén piesne nahlas v obchode.","Daj si 60 s studenú sprchu a komentuj to ako reportér.","Urob 30 drepov na verejnosti bez vysvetlenia.","Daj cudziemu človeku darček do 2 €.","Zjedz citrón a nezakri tvár.","Zahraj 20 s reklamu na obyčajný predmet vo svojej izbe.","Prejdi 100 m cúvaním po ulici.","Zatancuj 20 s tanec na verejnosti.","Zavolaj kamarátovi a urob mu telenovelové vyznanie.","Postav v prírode vežu z kameňov vyššiu ako 30 cm.","Objednaj si v obchode hlasom kráľa.","Predveď 20 s kúzelnícky trik.","Zjedz banán bez rúk.","Napíš a prednes báseň o najbližšom stromu.","Zjedz lyžičku horčice bez zmeny výrazu tváre.","Obleč si tričko naopak a choď tak do obchodu.","Rozosmej cudzieho človeka vtipom.","Urob 10 klikov v obchode medzi regálmi.","Hovor 1 minútu s kamarátom len v rýmoch.","Zjedz kúsok citróna a opíš jeho chuť ako sommelier.","Zahraj 30 s pantomímu na ulici.","Prejdi 50 m s ponožkou na hlave na verejnosti.","Prejdi 50 m po jednej línii dlažby ako po lane.","Zaspievaj ľudovú pieseň na zastávke.","Stoj 30 s ako socha v parku a nehýb sa.","Napíš 5 milých odkazov na lístky a rozdaj ich cudzím ľuďom.","Prednes motivačný prejav na verejnom mieste.","Skús v obchode vyjednať 10 % zľavu a natoč reakciu.","Vypi pohár vody bez použitia rúk.","Postav z vecí v izbe najvyššiu vežu do 2 minút.","Zahraj 30 s správy v televízii o niečom hlúpom.","Trafíš papierovou guľou kôš z 3 m do 10 pokusov.","Prejdi 100 m ako robot pred ľuďmi.","Vyrob a zjedz sendvič z troch nezvyčajných surovín.","Povedz 5 ľuďom úprimný kompliment do 5 minút.","Vykríkni na poli alebo kopci: „Som kráľ sveta!“","Predveď 30 s tanec z TikToku bez štipky hanby.","Objednaj si v obchode hlasom známej postavy.","Zahraj 20 s pesničku na hrnce a lyžice.","Vyjdi hore po schodoch pozadu.","Hlasno pochváľ 3 stromy ako ich najväčší fanúšik.","Rozprávaj 30 s vymysleným jazykom tak presvedčivo, ako sa len dá.","Zatancuj 15 s so kamarátom v dvojici ako vo filme.","Prejdi 50 m s knihou na hlave bez spadnutia.","Rozbehni sa a vykríkni: „Idem na Everest!“","Zahraj 20 s bitku so svojím tieňom ako bojový majster.","Prečítaj kamarátovi cez telefón 30 s list s vážnou tvárou.","Zjedz zdravú vec, ktorú nemáš rád, a ohodnoť ju 1 až 10.","Objednaj si jedlo hlasom robota.","Postav pevnosť z vankúšov a obráň ju 30 s pred kamarátom.","Natoč 20 s dokument o človeku ako David Attenborough.","Choď 200 m s taškou, akoby si nosil najťažší náklad na svete.","Vydrž 60 s bez smiechu, kým ti kamarát robí grimasy.","Objednaj si kávu operným hlasom."];
 const L=[[828,"Burdž Chalífa"],[1751,"Skalnaté pleso"],[2655,"Gerlach"],[4806,"Mont Blanc"],[5895,"Kilimandžáro"],[8849,"Mount Everest"]];
 let uid,nick,code,start,members=[],shown=false;
@@ -88,7 +109,7 @@ async function enter(c){
   code=c;start=g.data().start;
   setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true}).catch(e=>say("Zápis zlyhal: "+e.code,true));
   try{localStorage.setItem("sq2",JSON.stringify({code:c,nick}))}catch(e){}
-  $("join").hidden=true;$("app").hidden=false;$("gc").textContent=c;say("");
+  $("join").hidden=true;$("app").hidden=false;$("gc").textContent=c;$("pn").textContent=nick;$("nav").hidden=false;$("land").hidden=true;say("");
   onSnapshot(collection(db,"groups",c,"members"),s=>{members=s.docs.map(d=>({id:d.id,...d.data()}));render()});
   setInterval(render,60000);
 }
@@ -100,20 +121,20 @@ function render(){
   let deco="",bg,lvl,under="";
   const sp=(i,e,c,t)=>`<span class="${c}" style="left:${(i*37)%86+4}%;top:${t}%;animation-delay:${-i*1.7}s">${e}</span>`;
   if(p>=0){
-    const n=Math.min(9,Math.floor(alt/600)),far=alt<5000?"#7fa6c9":"#5a6fa8",near=alt<5000?"#4f6f8f":"#37497f";
-    bg=alt<2000?"linear-gradient(#5db8f5,#cdeeff)":alt<5000?"linear-gradient(#2f6fc7,#9ad4ff)":alt<8849?"linear-gradient(#101a5a,#3b6fd0)":"linear-gradient(#0a1040,#2fbf9b 70%,#d96fb0)";
+    const n=Math.min(6,Math.floor(alt/700)),far=alt<5000?"#7fa6c9":"#5a6fa8",near=alt<5000?"#4f6f8f":"#37497f";
+    bg=alt<2000?"linear-gradient(#4aa8ff,#bfe9ff 60%,#ffd9ec)":alt<5000?"linear-gradient(#2f6fc7,#9ad4ff 70%,#ffb3e0)":alt<8849?"linear-gradient(#101a5a,#3b6fd0 75%,#c04fb0)":"linear-gradient(#0a1040,#2fbf9b 70%,#d96fb0)";
     deco+=`<div class="mt" style="background:${far}"></div><div class="mt n" style="background:${near}"></div>`;
-    deco+=alt<5000?`<span style="right:10px;top:8px;font-size:30px">☀️</span>`:`<span style="right:10px;top:8px;font-size:26px">🌙</span>`;
-    for(let i=0;i<n;i++)deco+=sp(i,"☁️","fl",(i*53)%50+4);
-    if(alt<1500)for(let i=0;i<3;i++)deco+=sp(i+3,"🐦","fl",20+i*14);
-    if(alt>=3000)for(let i=0;i<7;i++)deco+=sp(i,"❄️","sn",0);
-    if(alt>=5000)for(let i=0;i<8;i++)deco+=sp(i,"✨","tw",(i*29)%45+3);
-    let l=null,li=-1;L.forEach((x,i)=>{if(alt>=x[0]){l=x[1];li=i}});
-    if(li>=0)deco+=`<span style="left:8px;bottom:34px;font-size:30px">${["🏙️","🏞️","⛰️","🏔️","🗻","🚩"][li]}</span>`;
+    deco+=alt<5000?`<div class="sun"></div>`:`<div class="moon"></div>`;
+    for(let i=0;i<n;i++)deco+=sp(i,SP.cl,"fl",(i*53)%45+4);
+    if(alt<1500)for(let i=0;i<3;i++)deco+=sp(i+3,SP.bd,"fl",18+i*14);
+    if(alt>=3000)for(let i=0;i<7;i++)deco+=sp(i,"*","sn",0);
+    if(alt>=5000)for(let i=0;i<8;i++)deco+=sp(i,SP.st,"tw",(i*29)%45+3);
+    let l=null;L.forEach(x=>{if(alt>=x[0])l=x[1]});
+    if(l)deco+=`<span class="lm">▲ ${l}</span>`;
     lvl=alt<828?"Turista":alt<2655?"Horolezec":alt<4806?"Skialpinista":alt<8849?"Sherpa":"Legenda";
     under=alt>=8849?"VRCHOL! Si na Evereste!":l?"Si vyššie ako: "+l:"Ešte si pri zemi.";
   }else{
-    const d=-p,z=d<80?["🪱","#7a4a22","Dážďovka"]:d<160?["🟤","#5a3416","Krt"]:d<250?["💎","#3d2a3a","Baník"]:d<350?["🔥","#5a1d12","Baník"]:["🌋","#b3260f","Lávový muž"];
+    const d=-p,z=d<80?[SP.wm,"#7a4a22","Dážďovka"]:d<160?[SP.pb,"#5a3416","Krt"]:d<250?[SP.gm,"#3d2a3a","Baník"]:d<350?[SP.fr,"#5a1d12","Baník"]:[SP.fr,"#b3260f","Lávový muž"];
     bg=`repeating-linear-gradient(#0000 0 38px,#0003 38px 42px),${z[1]}`;
     for(let i=0;i<8;i++)deco+=sp(i,z[0],d<80?"wm":"tw",(i*29)%70+8);
     if(d>=250)deco+=`<div style="position:absolute;left:0;right:0;bottom:30px;height:70px;background:linear-gradient(#0000,#ff7a1acc)"></div>`;
@@ -139,6 +160,8 @@ async function done(n,r){
   else{$("okp").style.display="flex"}
 }
 $("fail").onclick=()=>{$("fail").style.display="none"};
+$("hero").innerHTML=spr(HERO,4);$("lhero").innerHTML=spr(HERO,8);
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));["mis","reb","odz","prof"].forEach(v=>{$("v-"+v).hidden=v!==b.dataset.v});scrollTo(0,0)});
 $("snap").onclick=()=>{location.href="snapchat://"};
 $("home").onclick=()=>{$("okp").style.display="none";scrollTo(0,0)};
 $("leave").onclick=()=>{try{localStorage.removeItem("sq2")}catch(e){}location.reload()};
