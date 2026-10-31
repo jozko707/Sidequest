@@ -67,8 +67,9 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <main>
 <h1>HOROLEZEC</h1>
 <div id="land"><div id="lhero"></div><p class="tag">Každé 3 dni nová bláznivá misia. Splň ju, natoč dôkaz a vyšplhaj sa na Mount Everest. Kto zlyhá, padá pod zem až k jadru.</p></div>
-<div id="join" class="box">
-<input id="nick" placeholder="Tvoja prezývka" maxlength="14" autocomplete="off">
+<div id="acct" class="box" hidden><input id="an" placeholder="Meno" maxlength="14" autocomplete="username"><input id="ap" type="password" placeholder="Heslo (presne 6 znakov)" maxlength="6" autocomplete="current-password"><button id="log" class="p">Prihlásiť sa</button><button id="reg">Vytvoriť účet</button></div>
+<div id="join" class="box" hidden>
+<div style="margin-bottom:6px">Hráč: <b id="who"></b></div>
 <button id="mk" class="p">Nová skupina</button>
 <input id="cd" placeholder="Kód skupiny" maxlength="5" autocomplete="off">
 <button id="jn">Pripojiť sa</button>
@@ -82,7 +83,7 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 </div>
 <div id="v-reb" hidden><div class="box"><h2>Rebríček</h2><div id="board"></div></div></div>
 <div id="v-odz" hidden><div class="box"><h2>Odznaky <span id="bcnt"></span></h2><div id="bdg" class="bgrid"></div></div></div>
-<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="a2h" class="p">Pridať na plochu</button><p id="a2t" hidden>iPhone: ťukni na tlačidlo zdieľať (štvorec so šípkou) a potom na „Pridať na plochu“. Android: ťukni na tri bodky a potom na „Pridať na plochu“. Po pridaní sa môže stať, že sa musíš znova pripojiť kódom skupiny.</p><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
+<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="out">Odhlásiť sa</button><button id="a2h" class="p">Pridať na plochu</button><p id="a2t" hidden>iPhone: ťukni na tlačidlo zdieľať (štvorec so šípkou) a potom na „Pridať na plochu“. Android: ťukni na tri bodky a potom na „Pridať na plochu“. Po pridaní sa môže stať, že sa musíš znova pripojiť kódom skupiny.</p><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
 </div>
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
@@ -93,8 +94,8 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <div id="fail"><div id="tung"></div><h2 class="ft">Ty teda vieš ako skaziť zábavu, presne preto nemáš frajerku.</h2><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {initializeFirestore,doc,getDoc,setDoc,updateDoc,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import {initializeFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyC-WkbHfU7VNrSdv_d9juWMgbQ8CprJX04",authDomain:"sidequest-f6fe8.firebaseapp.com",projectId:"sidequest-f6fe8",storageBucket:"sidequest-f6fe8.firebasestorage.app",messagingSenderId:"205425497277",appId:"1:205425497277:web:19e93981e5f846414f93d4"};
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=initializeFirestore(fb,{experimentalAutoDetectLongPolling:true});
 const $=id=>document.getElementById(id),D=864e5,V={full:50,half:25,fail:-25};
@@ -110,10 +111,18 @@ const say=(t,b)=>{$("msg").textContent=t;$("msg").className=b?"bad":""};
 const cur=()=>{const e=Date.now()-start;return{n:Math.floor(e/(3*D)),t:e%(3*D)}};
 const closed=n=>{const c=cur();return n<c.n||(n==c.n&&c.t>=2*D)};
 const pts=m=>{let p=0;const c=cur();for(let n=m.resetN||0;n<=c.n;n++){const r=(m.results||{})[n]||(closed(n)?"fail":null);if(r)p+=V[r]}return p};
-onAuthStateChanged(auth,u=>{if(u){uid=u.uid;try{const s=JSON.parse(localStorage.getItem("sq2")||"null");if(s){nick=s.nick;enter(s.code)}}catch(e){}}});
-signInAnonymously(auth).catch(e=>say("Prihlásenie zlyhalo: "+e.code,true));
+const slug=n=>n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+let regBusy=false;
+const showAcct=()=>{$("acct").hidden=false;$("join").hidden=true;$("app").hidden=true;$("nav").hidden=true;$("land").hidden=false};
+const afterLogin=u=>{uid=u.uid;nick=u.displayName||"Hráč";$("acct").hidden=true;$("join").hidden=false;$("who").textContent=nick;let q=null;try{q=JSON.parse(localStorage.getItem("sq2")||"null")}catch(e){}if(q&&q.code)enter(q.code)};
+onAuthStateChanged(auth,u=>{if(regBusy)return;if(u&&!u.isAnonymous){afterLogin(u)}else{if(u){try{localStorage.setItem("sq_old",localStorage.getItem("sq_pid")||u.uid)}catch(e){}}showAcct()}});
+const cred=()=>{const name=$("an").value.trim(),pw=$("ap").value,sl=slug(name);if(name.length<2||sl.length<2){say("Meno musí mať aspoň 2 znaky.",true);return null}if(pw.length!==6){say("Heslo musí mať presne 6 znakov.",true);return null}return{name,pw,email:sl+"@horolezec.app"}};
+const aerr=e=>({"auth/email-already-in-use":"Také meno už existuje. Skús Prihlásiť sa.","auth/invalid-credential":"Zlé meno alebo heslo.","auth/wrong-password":"Zlé meno alebo heslo.","auth/user-not-found":"Také meno neexistuje.","auth/operation-not-allowed":"Treba zapnúť Email/Password vo Firebase.","auth/weak-password":"Heslo musí mať presne 6 znakov.","auth/network-request-failed":"Bez internetu."})[e.code]||("Chyba: "+e.code);
+$("reg").onclick=async()=>{const c=cred();if(!c)return;say("Vytváram účet...");regBusy=true;try{const r=await createUserWithEmailAndPassword(auth,c.email,c.pw);await updateProfile(r.user,{displayName:c.name});regBusy=false;say("");afterLogin(auth.currentUser)}catch(e){regBusy=false;say(aerr(e),true)}};
+$("log").onclick=async()=>{const c=cred();if(!c)return;say("Prihlasujem...");try{await signInWithEmailAndPassword(auth,c.email,c.pw);say("")}catch(e){say(aerr(e),true)}};
+$("out").onclick=async()=>{try{localStorage.removeItem("sq2")}catch(e){}try{await signOut(auth)}catch(e){}location.reload()};
 const rnd=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
-const gn=()=>{nick=$("nick").value.trim();if(!nick)say("Zadaj prezývku.",true);return nick};
+const gn=()=>!!nick;
 $("mk").onclick=async()=>{if(!gn()||!uid)return;try{const c=rnd();await setDoc(doc(db,"groups",c),{start:Date.now()});await enter(c)}catch(e){say("Chyba: "+e.code,true)}};
 $("jn").onclick=async()=>{if(!gn()||!uid)return;try{await enter($("cd").value.trim().toUpperCase())}catch(e){say("Chyba: "+e.code,true)}};
 async function enter(c){
@@ -121,7 +130,7 @@ async function enter(c){
   const g=await getDoc(doc(db,"groups",c));
   if(!g.exists()){say("Takáto skupina neexistuje.",true);return}
   code=c;start=g.data().start;
-  setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true}).catch(e=>say("Zápis zlyhal: "+e.code,true));
+  (async()=>{const old=localStorage.getItem("sq_old");if(old&&old!==uid){try{const od=await getDoc(doc(db,"groups",c,"members",old));if(od.exists()){const nd=await getDoc(doc(db,"groups",c,"members",uid));if(!nd.exists()||!Object.keys(nd.data().results||{}).length){await setDoc(doc(db,"groups",c,"members",uid),{...od.data(),name:nick});await deleteDoc(doc(db,"groups",c,"members",old))}}}catch(e){}}await setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true})})().catch(e=>say("Zápis zlyhal: "+e.code,true));
   try{localStorage.setItem("sq2",JSON.stringify({code:c,nick}))}catch(e){}
   $("join").hidden=true;$("app").hidden=false;$("gc").textContent=c;$("pn").textContent=nick;$("nav").hidden=false;$("land").hidden=true;say("");
   onSnapshot(collection(db,"groups",c,"members"),s=>{members=s.docs.map(d=>({id:d.id,...d.data()}));render()});
