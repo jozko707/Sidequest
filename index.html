@@ -40,6 +40,11 @@ main{padding-bottom:96px!important}
 .bd{animation:flap .4s steps(2) infinite}@keyframes flap{50%{transform:scaleY(.6)}}.sn{color:#fff}
 #nav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:4px solid var(--ink);z-index:5}
 #nav button{margin:0;padding:10px 2px;font-size:8px;box-shadow:none}#nav button.on{background:var(--hi);color:#fff}
+.ft{font-size:15px;line-height:1.9;color:#ff4f6d;text-shadow:3px 3px 0 #14123a,0 0 14px #ff4f6d;animation:pop .5s;margin:14px 0}
+#okt{font-size:20px;line-height:1.5;color:var(--gold);text-shadow:3px 3px 0 #14123a,0 0 16px #ffd400;animation:pop .5s;margin:10px 0;text-align:center}
+#coins{position:fixed;inset:0;pointer-events:none;overflow:hidden}.cn{position:absolute;top:-30px;animation:cf 2.2s linear infinite}
+@keyframes cf{to{transform:translateY(110vh) rotate(360deg)}}@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes bs{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}.shk main{animation:bs .15s 4}
 #hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob 1s steps(2) infinite}
 #path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
@@ -70,13 +75,13 @@ main{padding-bottom:96px!important}
 </div>
 <div id="v-reb" hidden><div class="box"><h2>Rebríček</h2><div id="board"></div></div></div>
 <div id="v-odz" hidden><div class="box"><h2>Odznaky</h2><p>Odznaky prídu v ďalšej aktualizácii.</p></div></div>
-<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="leave" class="r">Zmeniť skupinu</button></div></div>
+<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="snd">Zvuk: zapnutý</button><button id="leave" class="r">Zmeniť skupinu</button></div></div>
 </div>
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
-<div id="okp"><div style="font-size:60px">✅</div><p>Misia odoslaná!</p><p>Natoč dôkaz v Snapchate.</p><button id="snap" class="g">Otvoriť Snapchat</button><button id="home">Späť na úvod</button></div>
+<div id="okp"><div id="coins"></div><h2 id="okt"></h2><p>Misia odoslaná!<br>Natoč dôkaz v Snapchate.</p><button id="snap" class="g">Otvoriť Snapchat</button><button id="home">Späť na úvod</button></div>
 <nav id="nav" hidden><button data-v="mis" class="on">Misia</button><button data-v="reb">Rebríček</button><button data-v="odz">Odznaky</button><button data-v="prof">Profil</button></nav>
-<div id="fail"><div id="tung">🪵</div><p>TUNG TUNG TUNG SAHUR hovorí:</p><p>LOSER. BROKE. LWK GAY.<br>A mas ustupujucu liniu vlasov.</p><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
+<div id="fail"><div id="tung"></div><h2 class="ft">Ty teda vieš ako skaziť zábavu, presne preto nemáš frajerku.</h2><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -156,10 +161,22 @@ function render(){
 }
 async function done(n,r){
   await updateDoc(doc(db,"groups",code,"members",uid),{["results."+n]:r});
-  if(r==="fail"){$("fail").style.display="flex"}
-  else{$("okp").style.display="flex"}
+  if(r==="fail"){sfx("fail");document.body.classList.add("shk");setTimeout(()=>document.body.classList.remove("shk"),700);$("fail").style.display="flex"}
+  else{$("okt").textContent=r==="full"?"PRAVÝ BOJOVNÍK":"NEBOLO TO ZLÉ";$("coins").innerHTML=Array.from({length:22},(_,i)=>`<span class="cn" style="left:${(i*47)%94}%;animation-delay:${-(i%7)*.3}s">${COIN}</span>`).join("");sfx("win");$("okp").style.display="flex"}
 }
 $("fail").onclick=()=>{$("fail").style.display="none"};
+const SKULL=[".wwwwww.","wwwwwwww","wkkwwkkw","wkkwwkkw","wwwkkwww",".wwwwww.",".wkwkwk.",".wwwwww."];
+const COIN=spr([".yyyy.","yywyyy","ywyyoy","yyyyoy","yyooyy",".yyyy."],4);
+let AC=null,mute=false;try{mute=localStorage.getItem("sq_mute")==="1"}catch(e){}
+const note=(f,t,d,ty="square",v=.06,f2)=>{const o=AC.createOscillator(),g=AC.createGain(),T=AC.currentTime+t;o.type=ty;o.frequency.setValueAtTime(f,T);if(f2)o.frequency.exponentialRampToValueAtTime(f2,T+d);g.gain.setValueAtTime(v,T);g.gain.exponentialRampToValueAtTime(.0001,T+d);o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+d)};
+const sfx=k=>{if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();
+if(k==="click")note(660,0,.06);
+else if(k==="win"){[523,659,784,1047,1319].forEach((f,i)=>note(f,i*.09,.14));note(1568,.55,.3);note(1319,.7,.3)}
+else if(k==="fail"){note(220,0,.5,"sawtooth",.08,55);note(70,.05,.7,"square",.1,30)}}catch(e){}};
+document.addEventListener("click",e=>{if(e.target.closest("button"))sfx("click")},true);
+const sndTxt=()=>{$("snd").textContent="Zvuk: "+(mute?"vypnutý":"zapnutý")};sndTxt();
+$("snd").onclick=()=>{mute=!mute;try{localStorage.setItem("sq_mute",mute?"1":"0")}catch(e){}sndTxt()};
+$("tung").innerHTML=spr(SKULL,10);
 $("hero").innerHTML=spr(HERO,4);$("lhero").innerHTML=spr(HERO,8);
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));["mis","reb","odz","prof"].forEach(v=>{$("v-"+v).hidden=v!==b.dataset.v});scrollTo(0,0)});
 $("snap").onclick=()=>{location.href="snapchat://"};
