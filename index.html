@@ -67,7 +67,7 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <main>
 <h1>HOROLEZEC</h1>
 <div id="land"><div id="lhero"></div><p class="tag">Každé 3 dni nová bláznivá misia. Splň ju, natoč dôkaz a vyšplhaj sa na Mount Everest. Kto zlyhá, padá pod zem až k jadru.</p></div>
-<div id="acct" class="box" hidden><input id="an" placeholder="Meno" maxlength="14" autocomplete="username"><input id="ap" type="password" placeholder="Heslo (presne 6 znakov)" maxlength="6" autocomplete="current-password"><button id="log" class="p">Prihlásiť sa</button><button id="reg">Vytvoriť účet</button></div>
+<div id="acct" class="box" hidden><input id="an" placeholder="Meno" maxlength="14" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><input id="ap" type="password" placeholder="Heslo (presne 6 znakov)" maxlength="6" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><button id="eye" type="button">Ukázať heslo</button><button id="log" class="p">Prihlásiť sa</button><button id="reg">Vytvoriť účet</button></div>
 <div id="join" class="box" hidden>
 <div style="margin-bottom:6px">Hráč: <b id="who"></b></div>
 <button id="mk" class="p">Nová skupina</button>
@@ -120,6 +120,7 @@ const cred=()=>{const name=$("an").value.trim(),pw=$("ap").value,sl=slug(name);i
 const aerr=e=>({"auth/email-already-in-use":"Také meno už existuje. Skús Prihlásiť sa.","auth/invalid-credential":"Zlé meno alebo heslo.","auth/wrong-password":"Zlé meno alebo heslo.","auth/user-not-found":"Také meno neexistuje.","auth/operation-not-allowed":"Treba zapnúť Email/Password vo Firebase.","auth/weak-password":"Heslo musí mať presne 6 znakov.","auth/network-request-failed":"Bez internetu."})[e.code]||("Chyba: "+e.code);
 $("reg").onclick=async()=>{const c=cred();if(!c)return;say("Vytváram účet...");regBusy=true;try{const r=await createUserWithEmailAndPassword(auth,c.email,c.pw);await updateProfile(r.user,{displayName:c.name});regBusy=false;say("");afterLogin(auth.currentUser)}catch(e){regBusy=false;say(aerr(e),true)}};
 $("log").onclick=async()=>{const c=cred();if(!c)return;say("Prihlasujem...");try{await signInWithEmailAndPassword(auth,c.email,c.pw);say("")}catch(e){say(aerr(e),true)}};
+$("eye").onclick=()=>{const a=$("ap");a.type=a.type==="password"?"text":"password";$("eye").textContent=a.type==="password"?"Ukázať heslo":"Skryť heslo"};
 $("out").onclick=async()=>{try{localStorage.removeItem("sq2")}catch(e){}try{await signOut(auth)}catch(e){}location.reload()};
 const rnd=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
 const gn=()=>!!nick;
@@ -130,7 +131,7 @@ async function enter(c){
   const g=await getDoc(doc(db,"groups",c));
   if(!g.exists()){say("Takáto skupina neexistuje.",true);return}
   code=c;start=g.data().start;
-  (async()=>{const old=localStorage.getItem("sq_old");if(old&&old!==uid){try{const od=await getDoc(doc(db,"groups",c,"members",old));if(od.exists()){const nd=await getDoc(doc(db,"groups",c,"members",uid));if(!nd.exists()||!Object.keys(nd.data().results||{}).length){await setDoc(doc(db,"groups",c,"members",uid),{...od.data(),name:nick});await deleteDoc(doc(db,"groups",c,"members",old))}}}catch(e){}}await setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true})})().catch(e=>say("Zápis zlyhal: "+e.code,true));
+  (async()=>{const old=localStorage.getItem("sq_old");if(old&&old!==uid){try{const od=await getDoc(doc(db,"groups",c,"members",old));if(od.exists()){const nd=await getDoc(doc(db,"groups",c,"members",uid));if(!nd.exists()||!Object.keys(nd.data().results||{}).length){await setDoc(doc(db,"groups",c,"members",uid),{...od.data(),name:nick,seed:od.data().seed||old});await deleteDoc(doc(db,"groups",c,"members",old))}}}catch(e){}}await setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true});if(old&&old!==uid){try{const md=await getDoc(doc(db,"groups",c,"members",uid));if(md.exists()&&!md.data().seed&&!(await getDoc(doc(db,"groups",c,"members",old))).exists())await updateDoc(doc(db,"groups",c,"members",uid),{seed:old})}catch(e){}}})().catch(e=>say("Zápis zlyhal: "+e.code,true));
   try{localStorage.setItem("sq2",JSON.stringify({code:c,nick}))}catch(e){}
   $("join").hidden=true;$("app").hidden=false;$("gc").textContent=c;$("pn").textContent=nick;$("nav").hidden=false;$("land").hidden=true;say("");
   onSnapshot(collection(db,"groups",c,"members"),s=>{members=s.docs.map(d=>({id:d.id,...d.data()}));render()});
@@ -169,7 +170,7 @@ function render(){
   if(p<=-350){q.textContent="Si v jadre Zeme.";const b=document.createElement("button");b.textContent="Reset hry";b.className="p";b.onclick=()=>updateDoc(doc(db,"groups",code,"members",uid),{resetN:c.n+1});a.appendChild(b)}
   else if(c.t<2*D){
     const left=Math.ceil((2*D-c.t)/36e5),r=(m.results||{})[c.n];
-    q.textContent=POOL[(h(uid+code)+c.n*7)%POOL.length]+"  [zostáva "+left+" h]";
+    q.textContent=POOL[(h((m.seed||uid)+code)+c.n*7)%POOL.length]+"  [zostáva "+left+" h]";
     if(r){q.textContent+="  Odoslané: "+({full:"splnené",half:"čiastočne",fail:"nesplnené"})[r]}
     else[["full","Splnil som","g"],["half","Čiastočne","" ],["fail","Nesplnil som","r"]].forEach(x=>{const b=document.createElement("button");b.textContent=x[1];b.className=x[2];b.onclick=()=>done(c.n,x[0]);a.appendChild(b)});
   }else q.textContent="Dnes oddych. Ďalšia misia o "+Math.ceil((3*D-c.t)/36e5)+" h.";
