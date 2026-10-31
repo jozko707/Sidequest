@@ -52,8 +52,8 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
 .hud{display:flex;justify-content:space-between;gap:6px;margin:10px 0}.big{font-size:15px;color:var(--hi)}
 .row{display:flex;justify-content:space-between;border-bottom:2px dashed var(--ink);padding:3px 0}
-#fail,#okp{position:fixed;inset:0;background:rgba(10,8,30,.92);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9;text-align:center;padding:20px;color:#fff;cursor:pointer}
-#okp button{max-width:320px}#tung{font-size:84px;animation:sh .3s infinite}@keyframes sh{50%{transform:rotate(-8deg) translateY(-6px)}}
+#fail,#okp,#shp{position:fixed;inset:0;background:rgba(10,8,30,.92);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9;text-align:center;padding:20px;color:#fff;cursor:pointer}
+#okp button,#shp button{max-width:320px}#shi{max-height:42vh;max-width:80%;background:repeating-conic-gradient(#555 0 25%,#888 0 50%) 0 0/20px 20px;border:2px solid #fff}#tung{font-size:84px;animation:sh .3s infinite}@keyframes sh{50%{transform:rotate(-8deg) translateY(-6px)}}
 #msg{min-height:2em}.bad{color:var(--bad)}[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
@@ -73,7 +73,7 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <div id="scene"><div id="deco"></div><div id="hero"></div><div id="path"></div></div>
 <div class="hud"><div><div class="big" id="alt"></div><div id="pts"></div></div><div id="lvl" style="text-align:right"></div></div>
 <div id="above"></div>
-<div class="box"><h2>Misia</h2><div id="quest"></div><div id="acts"></div></div>
+<div class="box"><h2>Misia</h2><div id="quest"></div><div id="acts"></div></div><button id="shr" class="p">Zdieľať na Instagram story</button>
 </div>
 <div id="v-reb" hidden><div class="box"><h2>Rebríček</h2><div id="board"></div></div></div>
 <div id="v-odz" hidden><div class="box"><h2>Odznaky <span id="bcnt"></span></h2><div id="bdg" class="bgrid"></div></div></div>
@@ -82,6 +82,7 @@ input[type=range]{padding:0;accent-color:var(--hi)}
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
 <div id="okp"><div id="coins"></div><h2 id="okt"></h2><p>Misia odoslaná!<br>Natoč dôkaz v Snapchate.</p><button id="snap" class="g">Otvoriť Snapchat</button><button id="home">Späť na úvod</button></div>
+<div id="shp"><p>Tvoja nálepka</p><img id="shi" alt="Nálepka"><p id="shm" style="min-height:2.4em"></p><button id="cpy" class="g">Kopírovať nálepku</button><button id="sav">Uložiť / Zdieľať</button><button id="cls">Zavrieť</button></div>
 <nav id="nav" hidden><button data-v="mis" class="on">Misia</button><button data-v="reb">Rebríček</button><button data-v="odz">Odznaky</button><button data-v="prof">Profil</button></nav>
 <div id="fail"><div id="tung"></div><h2 class="ft">Ty teda vieš ako skaziť zábavu, presne preto nemáš frajerku.</h2><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
 <script type="module">
@@ -210,6 +211,24 @@ B.forEach(b=>{const ok=b[3](h);if(ok){got++;if(!seen.includes(b[0]))fresh.push(b
 const d=document.createElement("div");d.className="bg"+(ok?"":" lock");d.innerHTML=spr(MEDAL.map(q=>q.replace(/c/g,b[4])),5)+`<b>${b[1]}</b><span>${b[2]}</span>`;bx.appendChild(d)});
 $("bcnt").textContent=got+" / "+B.length;
 if(fresh.length){try{localStorage.setItem("sq_bd_"+code,JSON.stringify(seen.concat(fresh.map(b=>b[0]))))}catch(e){}say("Nový odznak: "+fresh.map(b=>b[1]).join(", "));if(seen.length)sfx("win")}}
+async function mkSticker(){
+  try{await document.fonts.load('40px "Press Start 2P"')}catch(e){}
+  const W=900,H=1120,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  const p=pts(me()),alt=p*12;x.textAlign="center";x.lineJoin="round";x.imageSmoothingEnabled=false;
+  const tx=(t,px,y,col,lw)=>{x.font=px+'px "Press Start 2P",monospace';x.lineWidth=lw;x.strokeStyle="#14123a";x.strokeText(t,W/2,y);x.fillStyle=col;x.fillText(t,W/2,y)};
+  tx(nick.toUpperCase(),54,110,"#ffd400",16);
+  const S=50,ox=(W-HERO[0].length*S)/2,oy=170;
+  HERO.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch!==".")x.fillStyle="#14123a",x.fillRect(ox+i*S-7,oy+j*S-7,S+14,S+14)}));
+  HERO.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch!==".")x.fillStyle=PAL[ch],x.fillRect(ox+i*S,oy+j*S,S,S)}));
+  tx(alt+" m",78,oy+HERO.length*S+130,"#ffffff",18);
+  tx("HOROLEZEC",30,oy+HERO.length*S+215,"#ff4fa3",12);
+  return new Promise(r=>c.toBlob(r,"image/png"));
+}
+let stBlob=null;
+$("shr").onclick=async()=>{stBlob=await mkSticker();$("shi").src=URL.createObjectURL(stBlob);$("shm").textContent="";$("shp").style.display="flex"};
+$("cpy").onclick=async()=>{try{await navigator.clipboard.write([new ClipboardItem({"image/png":stBlob})]);$("shm").textContent="Skopírované. V Instagrame otvor story, ťukni na obrazovku a vlož nálepku."}catch(e){$("shm").textContent="Kopírovanie nejde. Použi Uložiť / Zdieľať."}};
+$("sav").onclick=async()=>{const f=new File([stBlob],"horolezec.png",{type:"image/png"});try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});else{const a=document.createElement("a");a.href=URL.createObjectURL(stBlob);a.download="horolezec.png";a.click()}}catch(e){}};
+$("cls").onclick=()=>{$("shp").style.display="none"};
 $("hero").innerHTML=spr(HERO,4);$("lhero").innerHTML=spr(HERO,8);
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));["mis","reb","odz","prof"].forEach(v=>{$("v-"+v).hidden=v!==b.dataset.v});scrollTo(0,0)});
 $("snap").onclick=()=>{location.href="snapchat://"};
