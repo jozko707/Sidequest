@@ -23,6 +23,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 #scene{position:relative;height:200px;border:4px solid var(--ink);overflow:hidden;image-rendering:pixelated;box-shadow:5px 5px 0 var(--ink)}
 #deco{position:absolute;inset:0;font-size:22px;line-height:1}
 #deco span{position:absolute}
+#deco .mt{position:absolute;left:0;right:0;bottom:30px;height:95px;clip-path:polygon(0 100%,12% 40%,22% 70%,38% 12%,52% 65%,66% 30%,80% 70%,92% 35%,100% 100%)}
+#deco .mt.n{height:55px;clip-path:polygon(0 100%,8% 50%,20% 80%,35% 35%,50% 85%,65% 45%,85% 80%,100% 40%,100% 100%)}
+.fl{animation:dr 24s ease-in-out infinite alternate}@keyframes dr{to{transform:translateX(50px)}}
+.sn{animation:fall 5s linear infinite;font-size:14px}@keyframes fall{from{transform:translateY(-20px)}to{transform:translateY(210px)}}
+.tw{animation:tw 2s steps(2) infinite}@keyframes tw{50%{opacity:.2}}
+.wm{animation:cr 6s ease-in-out infinite alternate}@keyframes cr{to{transform:translateX(40px)}}
 #hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob 1s steps(2) infinite}
 #path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
@@ -57,9 +63,9 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,updateDoc,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {initializeFirestore,doc,getDoc,setDoc,updateDoc,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyC-WkbHfU7VNrSdv_d9juWMgbQ8CprJX04",authDomain:"sidequest-f6fe8.firebaseapp.com",projectId:"sidequest-f6fe8",storageBucket:"sidequest-f6fe8.firebasestorage.app",messagingSenderId:"205425497277",appId:"1:205425497277:web:19e93981e5f846414f93d4"};
-const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
+const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=initializeFirestore(fb,{experimentalAutoDetectLongPolling:true});
 const $=id=>document.getElementById(id),D=864e5,V={full:50,half:25,fail:-25};
 const POOL=["Vypi 0,5 l Sprite a zajedz to banánom.","Zjedz celý burger do 60 sekúnd.","Zahraj scénu z romantického filmu, kde vyznávaš lásku.","Choď do lesa a hraj sa na vlka: zavýjaj a loviť.","Rozkúr oheň len drevom, na povolenom mieste a s vodou po ruke.","Oslov cudzieho človeka a pochváľ ho tak, aby sa usmial.","Zaspievaj refrén piesne nahlas v obchode.","Daj si 60 s studenú sprchu a komentuj to ako reportér.","Urob 30 drepov na verejnosti bez vysvetlenia.","Daj cudziemu človeku darček do 2 €.","Zjedz citrón a nezakri tvár.","Zahraj 20 s reklamu na obyčajný predmet vo svojej izbe.","Prejdi 100 m cúvaním po ulici.","Zatancuj 20 s tanec na verejnosti.","Zavolaj kamarátovi a urob mu telenovelové vyznanie.","Postav v prírode vežu z kameňov vyššiu ako 30 cm.","Objednaj si v obchode hlasom kráľa.","Predveď 20 s kúzelnícky trik.","Zjedz banán bez rúk.","Napíš a prednes báseň o najbližšom stromu."];
 const L=[[828,"Burdž Chalífa"],[1751,"Skalnaté pleso"],[2655,"Gerlach"],[4806,"Mont Blanc"],[5895,"Kilimandžáro"],[8849,"Mount Everest"]];
@@ -76,10 +82,11 @@ const gn=()=>{nick=$("nick").value.trim();if(!nick)say("Zadaj prezývku.",true);
 $("mk").onclick=async()=>{if(!gn()||!uid)return;try{const c=rnd();await setDoc(doc(db,"groups",c),{start:Date.now()});await enter(c)}catch(e){say("Chyba: "+e.code,true)}};
 $("jn").onclick=async()=>{if(!gn()||!uid)return;try{await enter($("cd").value.trim().toUpperCase())}catch(e){say("Chyba: "+e.code,true)}};
 async function enter(c){
+  say("Pripájam sa...");
   const g=await getDoc(doc(db,"groups",c));
   if(!g.exists()){say("Takáto skupina neexistuje.",true);return}
   code=c;start=g.data().start;
-  await setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true});
+  setDoc(doc(db,"groups",c,"members",uid),{name:nick},{merge:true}).catch(e=>say("Zápis zlyhal: "+e.code,true));
   try{localStorage.setItem("sq2",JSON.stringify({code:c,nick}))}catch(e){}
   $("join").hidden=true;$("app").hidden=false;$("gc").textContent=c;say("");
   onSnapshot(collection(db,"groups",c,"members"),s=>{members=s.docs.map(d=>({id:d.id,...d.data()}));render()});
@@ -91,17 +98,26 @@ function render(){
   $("pts").textContent=p+" b";
   $("alt").textContent=(p>=0?alt+" m":"-"+(-p*12)+" m");
   let deco="",bg,lvl,under="";
+  const sp=(i,e,c,t)=>`<span class="${c}" style="left:${(i*37)%86+4}%;top:${t}%;animation-delay:${-i*1.7}s">${e}</span>`;
   if(p>=0){
-    const n=Math.min(9,Math.floor(alt/600));
-    for(let i=0;i<n;i++)deco+=`<span style="left:${(i*37)%86+4}%;top:${(i*53)%60+4}%">☁️</span>`;
-    bg=alt<4000?"linear-gradient(#6ec6ff,#bfe6ff)":"linear-gradient(#1b4e9b,#6ec6ff)";
+    const n=Math.min(9,Math.floor(alt/600)),far=alt<5000?"#7fa6c9":"#5a6fa8",near=alt<5000?"#4f6f8f":"#37497f";
+    bg=alt<2000?"linear-gradient(#5db8f5,#cdeeff)":alt<5000?"linear-gradient(#2f6fc7,#9ad4ff)":alt<8849?"linear-gradient(#101a5a,#3b6fd0)":"linear-gradient(#0a1040,#2fbf9b 70%,#d96fb0)";
+    deco+=`<div class="mt" style="background:${far}"></div><div class="mt n" style="background:${near}"></div>`;
+    deco+=alt<5000?`<span style="right:10px;top:8px;font-size:30px">☀️</span>`:`<span style="right:10px;top:8px;font-size:26px">🌙</span>`;
+    for(let i=0;i<n;i++)deco+=sp(i,"☁️","fl",(i*53)%50+4);
+    if(alt<1500)for(let i=0;i<3;i++)deco+=sp(i+3,"🐦","fl",20+i*14);
+    if(alt>=3000)for(let i=0;i<7;i++)deco+=sp(i,"❄️","sn",0);
+    if(alt>=5000)for(let i=0;i<8;i++)deco+=sp(i,"✨","tw",(i*29)%45+3);
+    let l=null,li=-1;L.forEach((x,i)=>{if(alt>=x[0]){l=x[1];li=i}});
+    if(li>=0)deco+=`<span style="left:8px;bottom:34px;font-size:30px">${["🏙️","🏞️","⛰️","🏔️","🗻","🚩"][li]}</span>`;
     lvl=alt<828?"Turista":alt<2655?"Horolezec":alt<4806?"Skialpinista":alt<8849?"Sherpa":"Legenda";
-    let l=null;for(const x of L)if(alt>=x[0])l=x[1];
     under=alt>=8849?"VRCHOL! Si na Evereste!":l?"Si vyššie ako: "+l:"Ešte si pri zemi.";
   }else{
     const d=-p,z=d<80?["🪱","#7a4a22","Dážďovka"]:d<160?["🟤","#5a3416","Krt"]:d<250?["💎","#3d2a3a","Baník"]:d<350?["🔥","#5a1d12","Baník"]:["🌋","#b3260f","Lávový muž"];
-    for(let i=0;i<7;i++)deco+=`<span style="left:${(i*41)%88+4}%;top:${(i*29)%70+8}%">${z[0]}</span>`;
-    bg=z[1];lvl=z[2];under=d>=350?"Jadro Zeme. Koniec, môžeš reset.":"Si pod zemou.";
+    bg=`repeating-linear-gradient(#0000 0 38px,#0003 38px 42px),${z[1]}`;
+    for(let i=0;i<8;i++)deco+=sp(i,z[0],d<80?"wm":"tw",(i*29)%70+8);
+    if(d>=250)deco+=`<div style="position:absolute;left:0;right:0;bottom:30px;height:70px;background:linear-gradient(#0000,#ff7a1acc)"></div>`;
+    lvl=z[2];under=d>=350?"Jadro Zeme. Koniec, môžeš reset.":"Si pod zemou.";
   }
   $("scene").style.background=bg;$("deco").innerHTML=deco;$("lvl").textContent=lvl;$("above").textContent=under;
   // quest
