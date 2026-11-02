@@ -64,6 +64,13 @@ button{min-height:44px}#nav button{min-height:54px;display:flex;flex-direction:c
 button{font-family:"Press Start 2P",ui-monospace,monospace}
 input,select{font-family:"Pixelify Sans","Press Start 2P",monospace;font-size:16px}
 #app>div:not([hidden]){animation:fadein .25s}@keyframes fadein{from{opacity:0;transform:translateY(6px)}}
+#how{position:fixed;inset:0;background:var(--bg);z-index:14;display:none;overflow:auto}
+.hw{max-width:460px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:14px;text-align:center}
+#hsp{display:flex;justify-content:center;align-items:flex-end;gap:12px;min-height:120px;color:var(--ink);filter:drop-shadow(0 0 8px var(--hi))}
+#hti{font-size:14px;line-height:1.6;color:var(--ink);text-shadow:2px 2px 0 var(--hi)}
+#htx{font-family:"Pixelify Sans","Press Start 2P",monospace;font-weight:500;font-size:19px;line-height:1.5;text-align:left;white-space:pre-line;background:var(--card);border:4px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:14px;margin:0}
+#hdot span{display:inline-block;width:12px;height:12px;border:2px solid var(--ink);margin:0 4px;background:var(--card)}#hdot span.on{background:var(--hi)}
+.hb{display:flex;gap:8px}.hb button{margin:0}#hsk{background:transparent;box-shadow:none;border-color:transparent;text-decoration:underline;font-size:9px}
 #hero{position:absolute;left:50%;bottom:30px;font-size:34px;transform:translateX(-50%);animation:bob .5s steps(1) infinite}
 #path{position:absolute;left:0;right:0;bottom:0;height:30px;background:repeating-linear-gradient(90deg,#8a5a2b 0 16px,#6f4720 16px 32px);border-top:4px solid #14123a}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-3px)}}
@@ -78,7 +85,7 @@ input,select{font-family:"Pixelify Sans","Press Start 2P",monospace;font-size:16
 <body>
 <main>
 <h1>HOROLEZEC</h1>
-<div id="land"><div id="lhero"></div><p class="tag">Každé 3 dni nová bláznivá misia. Splň ju, natoč dôkaz a vyšplhaj sa na Mount Everest. Kto zlyhá, padá pod zem až k jadru.</p></div>
+<div id="land"><div id="lhero"></div><p class="tag">Každé 3 dni nová bláznivá misia. Splň ju, natoč dôkaz a vyšplhaj sa na Mount Everest. Kto zlyhá, padá pod zem až k jadru.</p><button id="how1">Ako sa hrá</button></div>
 <div id="acct" class="box" hidden><input id="an" placeholder="Meno" maxlength="14" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><input id="ap" type="password" placeholder="Heslo (presne 6 znakov)" maxlength="6" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><button id="eye" type="button">Ukázať heslo</button><button id="log" class="p">Prihlásiť sa</button><button id="reg">Vytvoriť účet</button></div>
 <div id="join" class="box" hidden>
 <div style="margin-bottom:6px">Hráč: <b id="who"></b></div>
@@ -95,7 +102,7 @@ input,select{font-family:"Pixelify Sans","Press Start 2P",monospace;font-size:16
 </div>
 <div id="v-reb" hidden><div class="box"><h2>Na potvrdenie</h2><div id="conf">Nič na potvrdenie.</div></div><div class="box"><h2>Rebríček</h2><div id="board"></div></div><div class="box"><h2>Denná misia pre kamoša</h2><select id="gto"></select><input id="gtx" maxlength="120" placeholder="Napíš misiu (nič nebezpečné)"><button id="gsd" class="p">Poslať na zajtrajšok</button><div id="gl"></div></div></div>
 <div id="v-odz" hidden><div class="box"><h2>Odznaky <span id="bcnt"></span></h2><div id="bdg" class="bgrid"></div></div></div>
-<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="out">Odhlásiť sa</button><button id="a2h" class="p">Pridať na plochu</button><p id="a2t" hidden>iPhone: ťukni na tlačidlo zdieľať (štvorec so šípkou) a potom na „Pridať na plochu“. Android: ťukni na tri bodky a potom na „Pridať na plochu“. Po pridaní sa môže stať, že sa musíš znova pripojiť kódom skupiny.</p><button id="thm">Vzhľad: automaticky</button><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
+<div id="v-prof" hidden><div class="box"><h2>Profil</h2><div>Prezývka: <b id="pn"></b></div><div style="margin-top:8px">Kód skupiny: <b id="gc"></b></div><button id="out">Odhlásiť sa</button><button id="how2">Ako sa hrá</button><button id="a2h" class="p">Pridať na plochu</button><p id="a2t" hidden>iPhone: ťukni na tlačidlo zdieľať (štvorec so šípkou) a potom na „Pridať na plochu“. Android: ťukni na tri bodky a potom na „Pridať na plochu“. Po pridaní sa môže stať, že sa musíš znova pripojiť kódom skupiny.</p><button id="thm">Vzhľad: automaticky</button><button id="snd">Zvuk: zapnutý</button><button id="mus">Hudba: zapnutá</button><label style="display:block;margin-top:8px">Hlasitosť hudby<input id="vol" type="range" min="0" max="100" step="5"></label><button id="leave" class="r">Zmeniť skupinu</button></div></div>
 </div>
 <div id="msg" role="status" aria-live="polite"></div>
 </main>
@@ -103,6 +110,7 @@ input,select{font-family:"Pixelify Sans","Press Start 2P",monospace;font-size:16
 <div id="shp"><p>Tvoja nálepka</p><img id="shi" alt="Nálepka"><p id="shm" style="min-height:2.4em"></p><button id="cpy" class="g">Kopírovať</button><button id="sav">Uložiť / Zdieľať</button><button id="cam1" class="p">Odfotiť s nálepkou</button><button id="cls">Zavrieť</button></div>
 <div id="cam"><video id="cv" playsinline muted autoplay></video><img id="cs" alt="Nálepka"><div id="cbar"><div id="cm">Posúvaj nálepku prstom.</div><input id="csz" type="range" min="25" max="90" value="55" aria-label="Veľkosť"><div class="r2"><button id="csn" class="g">Odfotiť</button><button id="cfl">Otočiť</button><button id="cx">Zavrieť</button></div></div></div>
 <div id="fct"><h2>Splnené!</h2><p id="ft"></p><button id="fx" class="p">Pokračovať</button></div>
+<div id="how"><div class="hw"><h1 style="font-size:16px!important;margin:0">AKO SA HRÁ</h1><div id="hsp"></div><h2 id="hti"></h2><p id="htx"></p><div id="hdot"></div><div class="hb"><button id="hbk">Späť</button><button id="hnx" class="p">Ďalej</button></div><button id="hsk">Preskočiť návod</button></div></div>
 <nav id="nav" hidden><button data-v="mis" class="on">Misia</button><button data-v="reb">Rebríček</button><button data-v="odz">Odznaky</button><button data-v="prof">Profil</button></nav>
 <div id="fail"><div id="tung"></div><h2 class="ft">Ty teda vieš ako skaziť zábavu, presne preto nemáš frajerku.</h2><p style="opacity:.6">(ťukni pre zatvorenie)</p></div>
 <script type="module">
@@ -136,7 +144,7 @@ return p};
 const slug=n=>n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
 let regBusy=false;
 const showAcct=()=>{$("acct").hidden=false;$("join").hidden=true;$("app").hidden=true;$("nav").hidden=true;$("land").hidden=false};
-const afterLogin=u=>{uid=u.uid;nick=u.displayName||"Hráč";$("acct").hidden=true;$("join").hidden=false;$("who").textContent=nick;let q=null;try{q=JSON.parse(localStorage.getItem("sq2")||"null")}catch(e){}if(q&&q.code)enter(q.code)};
+const afterLogin=u=>{uid=u.uid;nick=u.displayName||"Hráč";$("acct").hidden=true;$("join").hidden=false;$("who").textContent=nick;let q=null;try{q=JSON.parse(localStorage.getItem("sq2")||"null")}catch(e){}if(q&&q.code)enter(q.code);howFirst()};
 onAuthStateChanged(auth,u=>{if(regBusy)return;if(u&&!u.isAnonymous){afterLogin(u)}else{if(u){try{localStorage.setItem("sq_old",localStorage.getItem("sq_pid")||u.uid)}catch(e){}}showAcct()}});
 const cred=()=>{const name=$("an").value.trim(),pw=$("ap").value,sl=slug(name);if(name.length<2||sl.length<2){say("Meno musí mať aspoň 2 znaky.",true);return null}if(pw.length!==6){say("Heslo musí mať presne 6 znakov.",true);return null}return{name,pw,email:sl+"@horolezec.app"}};
 const aerr=e=>({"auth/email-already-in-use":"Také meno už existuje. Skús Prihlásiť sa.","auth/invalid-credential":"Zlé meno alebo heslo.","auth/wrong-password":"Zlé meno alebo heslo.","auth/user-not-found":"Také meno neexistuje.","auth/operation-not-allowed":"Treba zapnúť Email/Password vo Firebase.","auth/weak-password":"Heslo musí mať presne 6 znakov.","auth/network-request-failed":"Bez internetu."})[e.code]||("Chyba: "+e.code);
@@ -327,7 +335,20 @@ const thN={auto:"automaticky",light:"svetlý",dark:"tmavý"};let th="auto";try{t
 const applyTh=()=>{const rt=document.documentElement;if(th==="auto")rt.removeAttribute("data-theme");else rt.dataset.theme=th;const dk=th==="dark"||(th==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.querySelector('meta[name="theme-color"]').content=dk?"#0b0f33":"#6ec6ff";$("thm").textContent="Vzhľad: "+thN[th]};
 applyTh();$("thm").onclick=()=>{th=th==="auto"?"light":th==="light"?"dark":"auto";try{localStorage.setItem("sq_theme",th)}catch(e){}applyTh()};
 let jt;$("hero").onclick=()=>{const e=$("hero");e.classList.remove("jmp","fll");void e.offsetWidth;e.classList.add("jmp");hset("win",900);sfx("jump");clearTimeout(jt);jt=setTimeout(()=>e.classList.remove("jmp"),900)};
-$("hero").innerHTML=spr(HERO,3);$("lhero").innerHTML=spr(HERO,6);
+$("hero").innerHTML=spr(HERO,3);$("lhero").innerHTML=spr(HERO,6);const SLIDES=[["HERO5", "Cieľ hry", "Vyšplhaj sa s kamošmi na Mount Everest.\nZa splnené misie dostávaš body a body ťa dvíhajú vyššie. Vrchol je pri asi 950 bodoch (8 849 m).\nKto zlyháva, padá pod zem až k jadru Zeme."], ["HERO5+COIN", "Hlavná misia", "Každý týždeň dostaneš ťažšiu dobrodružnú úlohu a robíš ju s parťákom.\nNatočte dôkaz a pošlite ho cez Snapchat.\nSplnená: +100 b\nČiastočne: +50 b\nNesplnená: −50 b"], ["TWO", "Parťák", "Na hlavnú misiu si vyberieš parťáka. Môže ju prijať alebo odmietnuť, vtedy vyberieš iného.\nParťák dostane za pomoc 50 b.\nAk nikto neprijme do štvrtého dňa, môžeš týždeň preskočiť za 0 b."], ["COIN", "Denná misia", "Každý deň malá úloha za +10 b.\nBez videa, stačí odkliknúť, že si ju splnil. Ak ju nesplníš, nič sa neodráta."], ["CHK", "Potvrdzovanie", "Misiu musí potvrdiť niekto iný než ty a tvoj parťák.\nV Rebríčku v boxe „Na potvrdenie“ ťukni na ✓ Videl som alebo ✗ Nesedí."], ["MEDAL", "Odznaky a fakty", "Za úspechy získaš odznaky.\nPo každej splnenej misii sa ukáže fun fakt o výške, v ktorej si.\nSvoju výšku môžeš zdieľať ako nálepku na Instagram story."], ["WARN", "Bezpečnosť", "Povedz niekomu, kam ideš, a maj nabitý telefón.\nOheň a stan len na povolenom mieste.\nNič nezákonné ani nebezpečné nestojí za body. Ak sa ti misia nezdá bezpečná, nerob ju."]];
+const CHK=spr(["........#","......###",".#...###.","###.###..",".#####...","..###....","...#....."],5);
+const WARN=spr(["...y...","..yyy..",".yykyy.","yyykyyy","yyykyyy","yyyyyyy","yykkkyy"],6);
+const SPR={HERO5:spr(HERO,5),"HERO5+COIN":spr(HERO,5)+COIN.replace(/width="\d+" height="\d+"/,'width="48" height="48"'),TWO:spr(HERO,4)+spr(HERO,4),COIN:COIN.replace(/width="\d+" height="\d+"/,'width="72" height="72"'),CHK,MEDAL:spr(MEDAL.map(q=>q.replace(/c/g,"y")),8),WARN};
+const HW=SLIDES.map(x=>[SPR[x[0]],x[1],x[2]]);
+let hi2=0;
+const hshow=()=>{const x=HW[hi2];$("hsp").innerHTML=x[0];$("hti").textContent=x[1];$("htx").textContent=x[2];$("hdot").innerHTML=HW.map((_,i)=>`<span class="${i===hi2?"on":""}"></span>`).join("");$("hbk").style.visibility=hi2?"visible":"hidden";$("hnx").textContent=hi2===HW.length-1?"Hotovo":"Ďalej"};
+const hopen=()=>{hi2=0;hshow();$("how").style.display="block"};
+const hclose=()=>{$("how").style.display="none";try{localStorage.setItem("sq_how","1")}catch(e){}};
+$("hnx").onclick=()=>{if(hi2>=HW.length-1)hclose();else{hi2++;hshow()}};
+$("hbk").onclick=()=>{if(hi2>0){hi2--;hshow()}};
+$("hsk").onclick=hclose;$("how1").onclick=hopen;$("how2").onclick=hopen;
+function howFirst(){let v=null;try{v=localStorage.getItem("sq_how")}catch(e){}if(!v)hopen()}
+
 const ed=(g,e)=>{const a=g.map(q=>q.split(""));e.forEach(([i,j,c])=>{a[i][j]=c});return a.map(q=>q.join(""))};
 const lg=(g,o)=>{const a=g.slice();Object.keys(o).forEach(i=>{a[i]=o[i]});return a};
 const W0=lg(HERO,{18:"...bbb....bbb.g.",19:"...bbb....bbb.g.",20:"..kkkk....kkkk..",21:"..kkkk....kkkk..",22:"..gkgk....gkgk.."});
